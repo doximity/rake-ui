@@ -1,2 +1,2 @@
-Rake::Ui::Engine.routes.draw do
+RakeUi::Engine.routes.draw do
 end

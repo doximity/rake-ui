@@ -1,8 +1,8 @@
-require_relative "lib/rake/ui/version"
+require_relative "lib/rake_ui/version"
 
 Gem::Specification.new do |spec|
   spec.name        = "rake-ui"
-  spec.version     = Rake::Ui::VERSION
+  spec.version     = RakeUi::VERSION
   spec.authors     = ["Austin Story"]
   spec.email       = ["lonnieastory@gmail.com"]
   spec.homepage    = "https://github.com/doximity/rake-ui"

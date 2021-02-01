@@ -1,3 +1,3 @@
 Rails.application.routes.draw do
-  mount Rake::Ui::Engine => "/rake-ui"
+  mount RakeUi::Engine => "/rake-ui"
 end

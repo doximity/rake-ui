@@ -1,4 +1,4 @@
-# Rake::Ui
+# RakeUi
 Short description and motivation.
 
 ## Usage
