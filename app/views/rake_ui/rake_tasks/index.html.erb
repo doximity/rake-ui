@@ -1,1 +1,41 @@
-<h1>hiya</h1>
+<p id="notice"><%= notice %></p>
+
+<h1>Rake Tasks</h1>
+
+<hr >
+
+<table>
+  <thead>
+  <tr>
+    <th colspan="3"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr>
+    <td>id</td>
+    <td>name</td>
+    <td>name with args</td>
+    <td>arg description</td>
+    <td>full comment</td>
+    <td>locations</td>
+    <td>custom?</td>
+    <td>sources</td>
+  </tr>
+  <% @rake_tasks.each do |rake_tasks| %>
+    <tr>
+      <td><%= link_to rake_tasks.id, rake_tasks_path(rake_tasks.id) %></td>
+      <td><%= rake_tasks.name %></td>
+      <td><%= rake_tasks.name_with_args %></td>
+      <td><%= rake_tasks.arg_description %></td>
+      <td><%= rake_tasks.full_comment %></td>
+      <td><%= rake_tasks.locations %></td>
+      <td><%= rake_tasks.is_internal_task %></td>
+      <td><%= rake_tasks.sources %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<br>
+
