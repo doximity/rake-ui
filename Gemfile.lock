@@ -4,6 +4,7 @@ PATH
     rake-ui (0.1.0)
       actionpack
       activesupport
+      jbuilder
       railties
       rake
 
