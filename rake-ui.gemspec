@@ -16,5 +16,9 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.md"]
 
-  spec.add_dependency "rails", "~> 6.1.1"
+  spec.add_dependency "activesupport"
+  spec.add_dependency "actionpack"
+  spec.add_dependency "jbuilder"
+  spec.add_dependency "railties"
+  spec.add_dependency "rake"
 end

@@ -1,1 +1,1 @@
-//= link_directory ../stylesheets/rake_ui/application.css
+//= link_directory ../stylesheets/rake_ui

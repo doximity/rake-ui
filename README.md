@@ -21,6 +21,13 @@ Or install it yourself as:
 $ gem install rake-ui
 ```
 
+once it is installed, mount the engine
+```rb
+Rails.application.routes.draw do
+  mount RakeUi::Engine => "/rake-ui"
+end
+```
+
 ## Contributing
 Contribution directions go here.
 
