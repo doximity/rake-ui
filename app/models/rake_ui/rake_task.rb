@@ -1,5 +1,3 @@
-require 'rake'
-
 module RakeUi
   class RakeTask
     def self.load
@@ -61,7 +59,6 @@ module RakeUi
       # end
     end
 
-    require 'open3'
     def call(args: nil, environment: nil)
       rake_command = build_rake_command(args: args, environment: environment)
 

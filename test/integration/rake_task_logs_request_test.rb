@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'pry'
+
 class RakeTaskLogsRequestTest < ActionDispatch::IntegrationTest
   test "index html responds successfully" do
     get '/rake-ui/rake_task_logs'

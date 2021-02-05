@@ -1,5 +1,6 @@
 require 'rake'
 require 'fileutils'
+require 'open3'
 
 module RakeUi
   class Engine < ::Rails::Engine
