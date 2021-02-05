@@ -18,13 +18,12 @@ module RakeUi
       end
     end
 
-
     def execute
       @rake_task = RakeUi::RakeTask.find_by_id(params[:id])
 
-      @rake_task.call(args: params[:args], environment: params[:environment])
+      rake_task_log = @rake_task.call(args: params[:args], environment: params[:environment])
 
-      redirect_to rake_task_path @rake_task.id
+      redirect_to rake_task_log_path rake_task_log.id
     end
   end
 end

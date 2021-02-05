@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Status</h1>
+
+<hr >
+
+<table>
+  <thead>
+  <tr>
+    <th colspan="3"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr>
+    <td>id</td>
+    <td>name</td>
+    <td>date</td>
+  </tr>
+  <% @rake_task_logs.each do |rake_task_log| %>
+    <tr>
+      <td><%= link_to rake_task_log.id, rake_task_log_path(rake_task_log.id) %></td>
+      <td><%= rake_task_log.id %></td>
+      <td><%= rake_task_log.name %></td>
+      <td><%= rake_task_log.date %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
