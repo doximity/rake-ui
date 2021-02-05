@@ -24,7 +24,7 @@
   </tr>
   <% @rake_tasks.each do |rake_tasks| %>
     <tr>
-      <td><%= link_to rake_tasks.id, rake_tasks_path(rake_tasks.id) %></td>
+      <td><%= link_to rake_tasks.id, rake_task_path(rake_tasks.id) %></td>
       <td><%= rake_tasks.name %></td>
       <td><%= rake_tasks.name_with_args %></td>
       <td><%= rake_tasks.arg_description %></td>
