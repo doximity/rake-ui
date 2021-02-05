@@ -1,5 +1,7 @@
+<h1>Rake Task</h1>
+
 <%= @rake_task.name %>
-<%= form_with url: rake_task_execute_path(@rake_task), method: :post do |f| %>
+<%= form_with url: rake_task_execute_path(@rake_task.id), method: :post do |f| %>
   <%= f.label :args, "Arguments, as if you were raking" %>
   <%= f.text_field :arguments %>
 
