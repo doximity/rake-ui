@@ -3,8 +3,10 @@ module RakeUi
     # year-month-day-hour(24hour time)-minute-second-utc
     ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S%z"
     REPOSITORY_DIR = Rails.root.join('tmp', 'rake_ui')
-    FILE_DELIMITER = '____'
+    FILE_DELIMITER = "____"
     FINISHED_STRING = "+++++ COMMAND FINISHED +++++"
+    TASK_HEADER_OUTPUT_DELIMITER = "-------------------------------"
+    FILE_ITEM_SEPARATOR = ": "
 
     def self.truncate
       FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + '/*'))
@@ -26,18 +28,18 @@ module RakeUi
       log_file_full_path = Rails.root.join('tmp', 'rake_ui', log_file_name).to_s
 
       File.open(log_file_full_path, 'w+') do |f|
-        f.puts "id: #{id}"
-        f.puts "name: #{name}"
-        f.puts "args: #{args}"
-        f.puts "environment: #{environment}"
-        f.puts "rake_command: #{rake_command}"
-        f.puts "rake_definition_file #{rake_definition_file}"
-        f.puts "log_file_name: #{log_file_name}"
-        f.puts "log_file_full_path: #{log_file_full_path}"
+        f.puts "id#{FILE_ITEM_SEPERATOR}#{id}"
+        f.puts "name#{FILE_ITEM_SEPERATOR}#{name}"
+        f.puts "args#{FILE_ITEM_SEPERATOR}#{args}"
+        f.puts "environment#{FILE_ITEM_SEPERATOR}#{environment}"
+        f.puts "rake_command#{FILE_ITEM_SEPERATOR}#{rake_command}"
+        f.puts "rake_definition_file#{FILE_ITEM_SEPERATOR}#{rake_definition_file}"
+        f.puts "log_file_name#{FILE_ITEM_SEPERATOR}#{log_file_name}"
+        f.puts "log_file_full_path#{FILE_ITEM_SEPERATOR}#{log_file_full_path}"
 
-        f.puts "-------------------------------"
+        f.puts "#{TASK_HEADER_OUTPUT_DELIMITER}"
         f.puts " INVOKED RAKE TASK OUTPUT BELOW"
-        f.puts "-------------------------------"
+        f.puts "#{TASK_HEADER_OUTPUT_DELIMITER}"
       end
 
       new(id: id,
@@ -70,6 +72,11 @@ module RakeUi
       end
     end
 
+    # def name
+    #   existing = super
+    #   existing || parsed_file_contents[:name]
+    # end
+
     def rake_command_with_logging
       "#{rake_command} 2>&1 >> #{log_file_full_path}"
     end
@@ -84,6 +91,26 @@ module RakeUi
 
     def finished?
       file_contents.include? FINISHED_STRING
+    end
+
+    private
+
+    # converts our file structure into an object
+    # name: foo
+    # id: baz
+    #
+    # into
+    #
+    # { name: 'foo', id: 'baz' }
+    def parsed_file_contents
+      @parsed_file_contents ||= {}.tap do |parsed|
+        File.foreach(log_file_full_path).first(8).each do |line|
+          name, value = line.split(FILE_ITEM_SEPARATOR, 2)
+          next unless name
+
+          parsed[name] = value && value.gsub("\n", '')
+        end
+      end.with_indifferent_access
     end
   end
 end
