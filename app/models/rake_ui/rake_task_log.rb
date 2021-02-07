@@ -72,10 +72,34 @@ module RakeUi
       end
     end
 
-    # def name
-    #   existing = super
-    #   existing || parsed_file_contents[:name]
-    # end
+    def name
+      super || parsed_file_contents[:name]
+    end
+
+    def args
+      super || parsed_file_contents[:args]
+    end
+
+    def environment
+      super || parsed_file_contents[:environment]
+    end
+
+    def rake_command
+      super || parsed_file_contents[:rake_command]
+    end
+
+    def rake_definition_file
+      super || parsed_file_contents[:rake_definition_file]
+    end
+
+    def log_file_name
+      super || parsed_file_contents[:log_file_name]
+    end
+
+    def log_file_full_path
+      super || parsed_file_contents[:log_file_full_path]
+    end
+
 
     def rake_command_with_logging
       "#{rake_command} 2>&1 >> #{log_file_full_path}"
@@ -95,7 +119,7 @@ module RakeUi
 
     private
 
-    # converts our file structure into an object
+    # converts our persisted rake logs files into an object
     # name: foo
     # id: baz
     #
@@ -103,7 +127,9 @@ module RakeUi
     #
     # { name: 'foo', id: 'baz' }
     def parsed_file_contents
-      @parsed_file_contents ||= {}.tap do |parsed|
+      return @parsed_file_contents if defined? @parsed_file_contents
+
+      @parsed_file_contents = {}.tap do |parsed|
         File.foreach(log_file_full_path).first(8).each do |line|
           name, value = line.split(FILE_ITEM_SEPARATOR, 2)
           next unless name
