@@ -13,7 +13,7 @@ module RakeUi
     end
 
     def self.build_from_file(log_file_name)
-      # date, task = log_file_name.split(FILE_DELIMITER)
+      log_file_name.split(FILE_DELIMITER)
 
       new(
         id: log_file_name.gsub('.txt', ''),
@@ -23,13 +23,15 @@ module RakeUi
     end
 
     def self.build_new_for_command(name:, args: nil, environment: nil,rake_definition_file:, rake_command:, raker_id:)
-      id = "#{Time.now.strftime(ID_DATE_FORMAT)}#{FILE_DELIMITER}#{raker_id}"
+      date = Time.now.strftime(ID_DATE_FORMAT)
+      id = "#{date}#{FILE_DELIMITER}#{raker_id}"
       log_file_name = "#{id}.txt"
       log_file_full_path = Rails.root.join('tmp', 'rake_ui', log_file_name).to_s
 
       File.open(log_file_full_path, 'w+') do |f|
         f.puts "id#{FILE_ITEM_SEPERATOR}#{id}"
         f.puts "name#{FILE_ITEM_SEPERATOR}#{name}"
+        f.puts "date#{FILE_ITEM_SEPERATOR}#{date}"
         f.puts "args#{FILE_ITEM_SEPERATOR}#{args}"
         f.puts "environment#{FILE_ITEM_SEPERATOR}#{environment}"
         f.puts "rake_command#{FILE_ITEM_SEPERATOR}#{rake_command}"
@@ -73,7 +75,11 @@ module RakeUi
     end
 
     def name
-      super || parsed_file_contents[:name]
+      super || parsed_log_file_name[:name] || parsed_file_contents[:name]
+    end
+
+    def date
+      super || parsed_log_file_name[:date] || parsed_file_contents[:date]
     end
 
     def args
@@ -100,7 +106,6 @@ module RakeUi
       super || parsed_file_contents[:log_file_full_path]
     end
 
-
     def rake_command_with_logging
       "#{rake_command} 2>&1 >> #{log_file_full_path}"
     end
@@ -119,6 +124,15 @@ module RakeUi
 
     private
 
+    # converts standard formatted file id into an object
+    def parsed_log_file_name
+      @parsed_log_file_name ||= {}.tap do |parsed|
+        date, name = id.split(FILE_DELIMITER, 2)
+        parsed[:date] = date
+        parsed[:name] = CGI.unescape(name)
+      end
+    end
+
     # converts our persisted rake logs files into an object
     # name: foo
     # id: baz
@@ -130,7 +144,7 @@ module RakeUi
       return @parsed_file_contents if defined? @parsed_file_contents
 
       @parsed_file_contents = {}.tap do |parsed|
-        File.foreach(log_file_full_path).first(8).each do |line|
+        File.foreach(log_file_full_path).first(9).each do |line|
           name, value = line.split(FILE_ITEM_SEPARATOR, 2)
           next unless name
 
