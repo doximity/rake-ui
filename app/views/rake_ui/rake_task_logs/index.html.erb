@@ -13,16 +13,15 @@
 
   <tbody>
   <tr>
-    <td>id</td>
-    <td>name</td>
-    <td>date</td>
+    <td>Name</td>
+    <td>Date Ran</td>
+    <td></td>
   </tr>
   <% @rake_task_logs.each do |rake_task_log| %>
     <tr>
-      <td><%= link_to rake_task_log.id, rake_task_log_path(rake_task_log.id) %></td>
-      <td><%= rake_task_log.id %></td>
-      <td><%= rake_task_log.name %></td>
+      <td><%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id) %></td>
       <td><%= rake_task_log.date %></td>
+      <td><%= link_to "View Logs", rake_task_log_path(rake_task_log.id), { class: 'btn' } %></td>
     </tr>
   <% end %>
   </tbody>
