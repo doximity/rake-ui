@@ -4,6 +4,7 @@ module RakeUi
     ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S%z"
     REPOSITORY_DIR = Rails.root.join('tmp', 'rake_ui')
     FILE_DELIMITER = '____'
+    FINISHED_STRING = "+++++ COMMAND FINISHED +++++"
 
     def self.truncate
       FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + '/*'))
@@ -75,6 +76,14 @@ module RakeUi
 
     def file_contents
       @file_contents ||= File.read(log_file_full_path)
+    end
+
+    def command_to_mark_log_finished
+      "echo #{FINISHED_STRING} >> #{log_file_full_path}"
+    end
+
+    def finished?
+      file_contents.include? FINISHED_STRING
     end
   end
 end
