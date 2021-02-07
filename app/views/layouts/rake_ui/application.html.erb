@@ -10,8 +10,19 @@
   <%= stylesheet_link_tag "rake_ui/application", media: "all" %>
 </head>
 <body>
-  <%= link_to "Tasks", rake_tasks_path %>
-  <%= link_to "Last Ran", rake_task_logs_path %>
+
+  <!-- Nav Menu -->
+  <div class="row header">
+    <div class="section">
+      <nav>
+        <ul class="menu">
+          <li><%= link_to "Rake Tasks", rake_tasks_path %></li>
+          <li><%= link_to "Logs", rake_task_logs_path %></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <!-- End Nav Menu -->
 
   <%= yield %>
 </body>
