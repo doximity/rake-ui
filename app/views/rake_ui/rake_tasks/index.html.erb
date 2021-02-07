@@ -1,10 +1,9 @@
 <h1>Rake Tasks</h1>
 
-<hr >
-
-
-<%= link_to "Show all tasks", rake_tasks_path(show_all: "yes") %>
-<%= link_to "Show only internal tasks", rake_tasks_path %>
+<div class="section">
+  <%= link_to "Show all tasks", rake_tasks_path(show_all: "yes"), { class: 'btn' } %>
+  <%= link_to "Show only internal tasks", rake_tasks_path, { class: 'btn' } %>
+</div>
 
 <table>
   <thead>
@@ -15,17 +14,17 @@
 
   <tbody>
   <tr>
-    <td>name</td>
-    <td>arg description</td>
-    <td>full comment</td>
     <td>custom?</td>
+    <td>name</td>
+    <td>full comment</td>
+    <td>Actions</td>
   </tr>
   <% @rake_tasks.each do |rake_tasks| %>
     <tr>
+      <td><%= rake_tasks.is_internal_task ? "Y" : "n" %></td>
       <td><%= link_to rake_tasks.name_with_args, rake_task_path(rake_tasks.id) %></td>
-      <td><%= rake_tasks.arg_description %></td>
       <td><%= rake_tasks.full_comment %></td>
-      <td><%= rake_tasks.is_internal_task %></td>
+      <td><%= link_to "Go Here", rake_task_path(rake_tasks.id), { class: 'btn' } %></td>
     </tr>
   <% end %>
   </tbody>
