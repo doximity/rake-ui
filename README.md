@@ -28,8 +28,22 @@ Rails.application.routes.draw do
 end
 ```
 
+## Testing
+
+`bundle exec rake test`
+
+To iterate on this fast i normally install nodemon, you can also use guard minitest.
+
+```
+# Example with nodemon, you don't have to use this
+npm install -g nodemon
+
+# Running a single test whenever models change
+nodemon -w ./app/models/*  -e "rb" --exec "rake test TEST=test/rake_ui/rake_task_log_test.rb"
+```
+
 ## Contributing
-Contribution directions go here.
+Contributing information available in [CONTRIBUTING](./CONTRIBUTING.md)
 
 ## License
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the [Apache 2.0 License](./LICENSE).
