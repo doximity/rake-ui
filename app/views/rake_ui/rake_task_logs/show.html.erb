@@ -20,6 +20,9 @@
       .then(function(r) { return r.json() })
       .then(function (r) {
         replaceContent(r.rake_task_log_content)
+        if (r.is_rake_task_log_finished) {
+          clearInterval(content_url)
+        }
         is_requesting = false
       })
       .catch(function(err) {

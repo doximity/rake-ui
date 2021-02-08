@@ -1,7 +1,13 @@
+require 'pry'
+
 module RakeUi
   class RakeTasksController < RakeUi::ApplicationController
     def index
-      @rake_tasks = RakeUi::RakeTask.all.select(&:internal_task?)
+      @rake_tasks = RakeUi::RakeTask.all
+
+      if !params[:show_all]
+        @rake_tasks = @rake_tasks.select(&:internal_task?)
+      end
 
       respond_to do |format|
         format.json

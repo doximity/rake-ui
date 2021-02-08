@@ -62,7 +62,7 @@ module RakeUi
     def call(args: nil, environment: nil)
       rake_command = build_rake_command(args: args, environment: environment)
 
-      raker_log = RakeUi::RakeTaskLog.build_new_for_command(
+      rake_task_log = RakeUi::RakeTaskLog.build_new_for_command(
         name: name,
         args: args,
         environment: environment,
@@ -71,19 +71,15 @@ module RakeUi
         raker_id: id
       )
 
-      puts "[rake_ui] [rake_task] [forked] #{raker_log.rake_command_with_logging}"
+      puts "[rake_ui] [rake_task] [forked] #{rake_task_log.rake_command_with_logging}"
 
       fork do
-        system(raker_log.rake_command_with_logging)
-        ## TODO need a way to determine if something is done
-        # on system would like to be able to do
-        # item.done?
-        # i think above we need to return a RakerLog
-        # then have that encapsulate the finish and system calls here
-        # system("echo '+++done+++' >> #{raker_log.file}")
+        system(rake_task_log.rake_command_with_logging)
+
+        system(rake_task_log.command_to_mark_log_finished)
       end
 
-      raker_log
+      rake_task_log
     end
 
     # returns an invokable rake command

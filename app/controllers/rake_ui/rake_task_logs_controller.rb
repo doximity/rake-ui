@@ -17,6 +17,8 @@ module RakeUi
 
       @rake_task_log_content_url = rake_task_log_path(@rake_task_log.id, format: :json)
 
+      @@is_rake_task_log_finished = @rake_task_log.finished?
+
       respond_to do |format|
         format.html
         format.json

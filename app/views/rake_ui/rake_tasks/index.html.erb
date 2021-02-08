@@ -2,6 +2,10 @@
 
 <hr >
 
+
+<%= link_to "Show all tasks", rake_tasks_path(show_all: "yes") %>
+<%= link_to "Show only internal tasks", rake_tasks_path %>
+
 <table>
   <thead>
   <tr>
@@ -11,25 +15,17 @@
 
   <tbody>
   <tr>
-    <td>id</td>
     <td>name</td>
-    <td>name with args</td>
     <td>arg description</td>
     <td>full comment</td>
-    <td>locations</td>
     <td>custom?</td>
-    <td>sources</td>
   </tr>
   <% @rake_tasks.each do |rake_tasks| %>
     <tr>
-      <td><%= link_to rake_tasks.id, rake_task_path(rake_tasks.id) %></td>
-      <td><%= rake_tasks.name %></td>
-      <td><%= rake_tasks.name_with_args %></td>
+      <td><%= link_to rake_tasks.name_with_args, rake_task_path(rake_tasks.id) %></td>
       <td><%= rake_tasks.arg_description %></td>
       <td><%= rake_tasks.full_comment %></td>
-      <td><%= rake_tasks.locations %></td>
       <td><%= rake_tasks.is_internal_task %></td>
-      <td><%= rake_tasks.sources %></td>
     </tr>
   <% end %>
   </tbody>
