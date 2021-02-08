@@ -29,15 +29,15 @@ module RakeUi
       log_file_full_path = Rails.root.join('tmp', 'rake_ui', log_file_name).to_s
 
       File.open(log_file_full_path, 'w+') do |f|
-        f.puts "id#{FILE_ITEM_SEPERATOR}#{id}"
-        f.puts "name#{FILE_ITEM_SEPERATOR}#{name}"
-        f.puts "date#{FILE_ITEM_SEPERATOR}#{date}"
-        f.puts "args#{FILE_ITEM_SEPERATOR}#{args}"
-        f.puts "environment#{FILE_ITEM_SEPERATOR}#{environment}"
-        f.puts "rake_command#{FILE_ITEM_SEPERATOR}#{rake_command}"
-        f.puts "rake_definition_file#{FILE_ITEM_SEPERATOR}#{rake_definition_file}"
-        f.puts "log_file_name#{FILE_ITEM_SEPERATOR}#{log_file_name}"
-        f.puts "log_file_full_path#{FILE_ITEM_SEPERATOR}#{log_file_full_path}"
+        f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
+        f.puts "name#{FILE_ITEM_SEPARATOR}#{name}"
+        f.puts "date#{FILE_ITEM_SEPARATOR}#{date}"
+        f.puts "args#{FILE_ITEM_SEPARATOR}#{args}"
+        f.puts "environment#{FILE_ITEM_SEPARATOR}#{environment}"
+        f.puts "rake_command#{FILE_ITEM_SEPARATOR}#{rake_command}"
+        f.puts "rake_definition_file#{FILE_ITEM_SEPARATOR}#{rake_definition_file}"
+        f.puts "log_file_name#{FILE_ITEM_SEPARATOR}#{log_file_name}"
+        f.puts "log_file_full_path#{FILE_ITEM_SEPARATOR}#{log_file_full_path}"
 
         f.puts "#{TASK_HEADER_OUTPUT_DELIMITER}"
         f.puts " INVOKED RAKE TASK OUTPUT BELOW"
