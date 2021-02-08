@@ -1,12 +1,21 @@
-<h1>Rake Task</h1>
+<div class="section">
+  <h1>Submit Rake Task</h1>
 
-<%= @rake_task.name %>
-<%= form_with url: rake_task_execute_path(@rake_task.id), method: :post do |f| %>
-  <%= f.label :args, "Arguments, as if you were raking" %>
-  <%= f.text_field :arguments %>
+  <h3>Task Name: <%= @rake_task.name_with_args %></h3>
 
-  <%= f.label :env, "Environment overrides" %>
-  <%= f.text_field :environment %>
+  <% if @rake_task.full_comment %>
+    <p>Comments: <%= @rake_task.full_comment %></p>
+  <% end %>
 
-  <%= f.submit "Submit" %>
-<% end %>
+  <%= form_with url: rake_task_execute_path(@rake_task.id), method: :post, class: 'full-width-forms' do |f| %>
+    <label>
+      <%= f.text_field :args, placeholder: "Rake arguments" %>
+    </label>
+
+    <label>
+      <%= f.text_field :args, placeholder: "Environmental variable overrides" %>
+    </label>
+
+    <%= f.submit "Submit", class: "btn solid blue" %>
+  <% end %>
+</div>
