@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 json.extract! rake_task,
               :id,
               :name,

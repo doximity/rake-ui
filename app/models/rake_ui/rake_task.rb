@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RakeUi
   class RakeTask
     def self.load

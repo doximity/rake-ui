@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :double_nested do
   namespace :inside_double_nested do
     desc "Doubley Nested Task"
