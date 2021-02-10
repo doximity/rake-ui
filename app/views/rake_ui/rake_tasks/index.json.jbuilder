@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 json.rake_tasks do
-  json.array! @rake_tasks, partial: 'rake_ui/rake_tasks/rake_task', as: :rake_task
+  json.array! @rake_tasks, partial: "rake_ui/rake_tasks/rake_task", as: :rake_task
 end

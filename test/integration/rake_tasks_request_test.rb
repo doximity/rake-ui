@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class RakeTasksRequestTest < ActionDispatch::IntegrationTest
   test "index html responds successfully" do
-    get '/rake-ui/rake_tasks'
+    get "/rake-ui/rake_tasks"
 
     assert_equal 200, status
   end
 
   test "index json responds with rake tasks" do
-    get '/rake-ui/rake_tasks.json'
+    get "/rake-ui/rake_tasks.json"
 
     assert_equal 200, status
     assert_instance_of Array, json_response[:rake_tasks]
@@ -35,8 +37,10 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
 
   test "post executes the task" do
     mock_task = Minitest::Mock.new
-    def mock_task.id; "some_identifier"; end
-    mock_task.expect :call, OpenStruct.new(id: '1234_path'), [{ args: "1,2,3", environment: "FOO=bar" }]
+    def mock_task.id
+      "some_identifier"
+    end
+    mock_task.expect :call, OpenStruct.new(id: "1234_path"), [{args: "1,2,3", environment: "FOO=bar"}]
 
     mock_find_by_id = lambda do |args|
       assert args, "some_identifier"
@@ -45,8 +49,8 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
     end
 
     RakeUi::RakeTask.stub :find_by_id, mock_find_by_id do
-      post "/rake-ui/rake_tasks/#{mock_task.id}/execute", params: { environment: "FOO=bar",
-                                                                    args: "1,2,3" }
+      post "/rake-ui/rake_tasks/#{mock_task.id}/execute", params: {environment: "FOO=bar",
+                                                                   args: "1,2,3"}
 
       assert_redirected_to "/rake-ui/rake_task_logs/1234_path"
     end

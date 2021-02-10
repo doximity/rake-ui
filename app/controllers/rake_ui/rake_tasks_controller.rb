@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module RakeUi
   class RakeTasksController < RakeUi::ApplicationController
     def index
       @rake_tasks = RakeUi::RakeTask.all
 
-      if !params[:show_all]
+      unless params[:show_all]
         @rake_tasks = @rake_tasks.select(&:internal_task?)
       end
 
