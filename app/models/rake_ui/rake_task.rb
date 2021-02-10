@@ -44,11 +44,11 @@ module RakeUi
       definition = actions.first || ""
 
       if definition.respond_to?(:source_location)
-        definition.source_location.join(':')
+        definition.source_location.join(":")
       else
         definition
       end
-    rescue StandardError
+    rescue
       "unable_to_determine_defining_file"
     end
 

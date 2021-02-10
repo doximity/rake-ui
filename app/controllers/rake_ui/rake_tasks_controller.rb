@@ -43,13 +43,13 @@ module RakeUi
     private
 
     RAKE_TASK_ATTRS = [:id,
-              :name,
-              :name_with_args,
-              :arg_description,
-              :full_comment,
-              :locations,
-              :is_internal_task,
-              :sources].freeze
+      :name,
+      :name_with_args,
+      :arg_description,
+      :full_comment,
+      :locations,
+      :is_internal_task,
+      :sources].freeze
 
     def rake_task_as_json(task)
       RAKE_TASK_ATTRS.each_with_object({}) do |param, obj|
