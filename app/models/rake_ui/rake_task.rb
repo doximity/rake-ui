@@ -41,7 +41,13 @@ module RakeUi
 
     # actions will be something like #<Proc:0x000055a2737fe778@/some/rails/app/lib/tasks/auto_annotate_models.rake:4>
     def rake_definition_file
-      actions.first
+      definition = actions.first || ""
+
+      if definition.respond_to?(:source_location)
+        definition.source_location.join(':')
+      else
+        definition
+      end
     rescue StandardError
       "unable_to_determine_defining_file"
     end
