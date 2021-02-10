@@ -5,7 +5,7 @@ module RakeUi
     def index
       @rake_tasks = RakeUi::RakeTask.all
 
-      if !params[:show_all]
+      unless params[:show_all]
         @rake_tasks = @rake_tasks.select(&:internal_task?)
       end
 

@@ -7,7 +7,7 @@ module RakeUi
     private
 
     def guard_not_production
-      respond :unauthorized unless (Rails.env.test? || Rails.env.development?)
+      respond :unauthorized unless Rails.env.test? || Rails.env.development?
     end
   end
 end

@@ -4,33 +4,33 @@ module RakeUi
   class RakeTaskLog < OpenStruct
     # year-month-day-hour(24hour time)-minute-second-utc
     ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S%z"
-    REPOSITORY_DIR = Rails.root.join('tmp', 'rake_ui')
+    REPOSITORY_DIR = Rails.root.join("tmp", "rake_ui")
     FILE_DELIMITER = "____"
     FINISHED_STRING = "+++++ COMMAND FINISHED +++++"
     TASK_HEADER_OUTPUT_DELIMITER = "-------------------------------"
     FILE_ITEM_SEPARATOR = ": "
 
     def self.truncate
-      FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + '/*'))
+      FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + "/*"))
     end
 
     def self.build_from_file(log_file_name)
       log_file_name.split(FILE_DELIMITER)
 
       new(
-        id: log_file_name.gsub('.txt', ''),
+        id: log_file_name.gsub(".txt", ""),
         log_file_name: log_file_name,
         log_file_full_path: Rails.root.join(REPOSITORY_DIR, log_file_name).to_s
       )
     end
 
-    def self.build_new_for_command(name:, args: nil, environment: nil,rake_definition_file:, rake_command:, raker_id:)
+    def self.build_new_for_command(name:, rake_definition_file:, rake_command:, raker_id:, args: nil, environment: nil)
       date = Time.now.strftime(ID_DATE_FORMAT)
       id = "#{date}#{FILE_DELIMITER}#{raker_id}"
       log_file_name = "#{id}.txt"
-      log_file_full_path = Rails.root.join('tmp', 'rake_ui', log_file_name).to_s
+      log_file_full_path = Rails.root.join("tmp", "rake_ui", log_file_name).to_s
 
-      File.open(log_file_full_path, 'w+') do |f|
+      File.open(log_file_full_path, "w+") do |f|
         f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
         f.puts "name#{FILE_ITEM_SEPARATOR}#{name}"
         f.puts "date#{FILE_ITEM_SEPARATOR}#{date}"
@@ -41,9 +41,9 @@ module RakeUi
         f.puts "log_file_name#{FILE_ITEM_SEPARATOR}#{log_file_name}"
         f.puts "log_file_full_path#{FILE_ITEM_SEPARATOR}#{log_file_full_path}"
 
-        f.puts "#{TASK_HEADER_OUTPUT_DELIMITER}"
+        f.puts TASK_HEADER_OUTPUT_DELIMITER.to_s
         f.puts " INVOKED RAKE TASK OUTPUT BELOW"
-        f.puts "#{TASK_HEADER_OUTPUT_DELIMITER}"
+        f.puts TASK_HEADER_OUTPUT_DELIMITER.to_s
       end
 
       new(id: id,
@@ -57,9 +57,9 @@ module RakeUi
     end
 
     def self.all
-      Dir.entries(REPOSITORY_DIR).reject do |file|
-        file == '.' || file == '..'
-      end.map do |log|
+      Dir.entries(REPOSITORY_DIR).reject { |file|
+        file == "." || file == ".."
+      }.map do |log|
         RakeUi::RakeTaskLog.build_from_file(log)
       end
     end
@@ -150,7 +150,7 @@ module RakeUi
           name, value = line.split(FILE_ITEM_SEPARATOR, 2)
           next unless name
 
-          parsed[name] = value && value.gsub("\n", '')
+          parsed[name] = value && value.delete("\n")
         end
       end.with_indifferent_access
     end

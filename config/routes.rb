@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RakeUi::Engine.routes.draw do
-  root to: 'rake_tasks#index'
+  root to: "rake_tasks#index"
 
   resources :rake_tasks, only: [:index, :show]
 
