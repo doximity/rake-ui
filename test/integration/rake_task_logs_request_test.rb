@@ -29,7 +29,6 @@ class RakeTaskLogsRequestTest < ActionDispatch::IntegrationTest
     get "/rake-ui/rake_task_logs/#{log.id}.json"
 
     assert_equal 200, status
-
     assert_equal log.id, json_response[:rake_task_log][:id]
     assert_equal log.log_file_name, json_response[:rake_task_log][:log_file_name]
 

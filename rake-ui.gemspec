@@ -18,7 +18,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "activesupport"
   spec.add_dependency "actionpack"
-  spec.add_dependency "jbuilder"
   spec.add_dependency "railties"
   spec.add_dependency "rake"
 end
