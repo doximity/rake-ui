@@ -2,6 +2,15 @@
 
 module RakeUi
   class RakeTaskLogsController < ApplicationController
+    RAKE_TASK_LOG_ATTRS = [:id,
+      :name,
+      :args,
+      :environment,
+      :rake_command,
+      :rake_definition_file,
+      :log_file_name,
+      :log_file_full_path].freeze
+
     def index
       @rake_task_logs = RakeUi::RakeTaskLog.all.sort_by(&:id)
 
@@ -37,14 +46,6 @@ module RakeUi
 
     private
 
-    RAKE_TASK_LOG_ATTRS = [:id,
-      :name,
-      :args,
-      :environment,
-      :rake_command,
-      :rake_definition_file,
-      :log_file_name,
-      :log_file_full_path]
     def rake_task_log_as_json(task)
       RAKE_TASK_LOG_ATTRS.each_with_object({}) do |param, obj|
         obj[param] = task.send(param)
