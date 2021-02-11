@@ -1,8 +1,5 @@
 # RakeUi
-Short description and motivation.
-
-## Usage
-How to use my plugin.
+Rake UI is a Rails engine that enables the discovery and execution rake tasks in a UI.
 
 ## Installation
 Add this line to your application's Gemfile:

@@ -10,6 +10,10 @@ module RakeUi
     TASK_HEADER_OUTPUT_DELIMITER = "-------------------------------"
     FILE_ITEM_SEPARATOR = ": "
 
+    def self.create_tmp_file_dir
+      FileUtils.mkdir_p(REPOSITORY_DIR.to_s)
+    end
+
     def self.truncate
       FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + "/*"))
     end
@@ -25,10 +29,12 @@ module RakeUi
     end
 
     def self.build_new_for_command(name:, rake_definition_file:, rake_command:, raker_id:, args: nil, environment: nil)
+      create_tmp_file_dir
+
       date = Time.now.strftime(ID_DATE_FORMAT)
       id = "#{date}#{FILE_DELIMITER}#{raker_id}"
       log_file_name = "#{id}.txt"
-      log_file_full_path = Rails.root.join("tmp", "rake_ui", log_file_name).to_s
+      log_file_full_path = REPOSITORY_DIR.join(log_file_name).to_s
 
       File.open(log_file_full_path, "w+") do |f|
         f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
@@ -57,6 +63,8 @@ module RakeUi
     end
 
     def self.all
+      create_tmp_file_dir
+
       Dir.entries(REPOSITORY_DIR).reject { |file|
         file == "." || file == ".."
       }.map do |log|

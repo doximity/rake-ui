@@ -28,7 +28,6 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
     task = RakeUi::RakeTask.internal.first
 
     get "/rake-ui/rake_tasks/#{task.id}.json"
-
     assert_equal 200, status
 
     assert_equal task.id, json_response[:rake_task][:id]
