@@ -6,8 +6,6 @@
   <%= csp_meta_tag %>
 
   <link rel="stylesheet" href="https://cdn.rawgit.com/doximity/vital/v2.2.1/dist/css/vital.min.css">
-
-  <%= stylesheet_link_tag "rake_ui/application", media: "all" %>
 </head>
 <body>
 
@@ -22,7 +20,12 @@
       </nav>
     </div>
   </div>
+
+  <p id="notice"><%= notice %></p>
+
   <!-- End Nav Menu -->
-  <%= yield %>
+  <div class="contents">
+    <%= yield %>
+  </div>
 </body>
 </html>

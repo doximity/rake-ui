@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-require 'pry'
 class RakeTaskLogTest < ActiveSupport::TestCase
   test "loads a log file correctly into an instance of RakeTaskLog" do
     id = "2021-02-07-09-34-04-0600____nested%3Athe_nested_task"

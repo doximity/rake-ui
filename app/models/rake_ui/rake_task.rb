@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RakeUi
   class RakeTask
     def self.load
@@ -12,9 +14,9 @@ module RakeUi
     end
 
     def self.internal
-      self.load.map do |task|
+      self.load.map { |task|
         new(task)
-      end.select(&:is_internal_task)
+      }.select(&:is_internal_task)
     end
 
     def self.find_by_id(id)
@@ -39,8 +41,14 @@ module RakeUi
 
     # actions will be something like #<Proc:0x000055a2737fe778@/some/rails/app/lib/tasks/auto_annotate_models.rake:4>
     def rake_definition_file
-      actions.first
-    rescue StandardError
+      definition = actions.first || ""
+
+      if definition.respond_to?(:source_location)
+        definition.source_location.join(":")
+      else
+        definition
+      end
+    rescue
       "unable_to_determine_defining_file"
     end
 
@@ -50,7 +58,7 @@ module RakeUi
 
     # thinking this is the sanest way to discern application vs gem defined tasks (like rails, devise etc)
     def internal_task?
-      actions.any? {|a| !a.to_s.include? "/ruby/gems" }
+      actions.any? { |a| !a.to_s.include? "/ruby/gems" }
 
       # this was my initial thought here, leaving for posterity in case we need to or the definition of custom
       # from initial investigation the actions seemed like the most consistent as locations is sometimes empty
@@ -90,13 +98,13 @@ module RakeUi
       command = ""
 
       if environment
-        command += "#{environment.to_s} "
+        command += "#{environment} "
       end
 
       command += "rake #{name}"
 
       if args
-        command += "[#{args.to_s}]"
+        command += "[#{args}]"
       end
 
       command

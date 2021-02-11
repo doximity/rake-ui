@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
 module RakeUi
-  module ApplicationHelper
-  end
+  VERSION = "0.1.0"
 end

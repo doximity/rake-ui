@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class RakeTaskTest < ActiveSupport::TestCase
@@ -20,6 +22,12 @@ class RakeTaskTest < ActiveSupport::TestCase
 
     no_environment = "rake #{task.name}[1,2,3]"
     assert_equal no_environment, task.build_rake_command(args: "1,2,3")
+  end
+
+  test "scrubs rake_definition_file to be html safe" do
+    task = RakeUi::RakeTask.internal.first
+
+    assert_equal task.rake_definition_file, "/home/talos/projects/dox/rake-ui/test/dummy/lib/tasks/double_nested_tasks.rake:6"
   end
 
   test "finds a task by id" do
