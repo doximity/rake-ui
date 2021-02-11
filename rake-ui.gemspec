@@ -20,4 +20,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "actionpack"
   spec.add_dependency "railties"
   spec.add_dependency "rake"
+
+  spec.add_development_dependency "standardrb"
 end
