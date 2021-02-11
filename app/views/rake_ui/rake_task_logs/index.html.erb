@@ -4,6 +4,12 @@
 
     <hr >
 
+    <div class="section">
+      <p>
+        Filter Table <input data-table-filter placeholder="Enter Text" />
+      </p>
+    </div>
+
     <table>
       <thead>
       <tr>
@@ -15,7 +21,7 @@
 
       <tbody>
       <% @rake_task_logs.each do |rake_task_log| %>
-        <tr>
+        <tr data-table-filterable="<%= rake_task_log.name %>">
           <td><%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id) %></td>
           <td><%= rake_task_log.date %></td>
           <td><%= link_to "View Logs", rake_task_log_path(rake_task_log.id), { class: 'btn' } %></td>
@@ -25,3 +31,5 @@
     </table>
   </div>
 </div>
+
+<%= render "partials/rake_ui/table_filterable" %>

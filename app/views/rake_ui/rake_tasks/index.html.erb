@@ -7,13 +7,12 @@
     <div class="section">
       <%= link_to "Show all tasks", rake_tasks_path(show_all: "yes"), { class: 'btn' } %>
       <%= link_to "Show only internal tasks", rake_tasks_path, { class: 'btn' } %>
-
-      <p>
-        <input data-table-filter placeholder="Filter Items" />
-      </p>
     </div>
 
     <div class="section">
+      <p>
+        Filter Table <input data-table-filter placeholder="Enter Text" />
+      </p>
     </div>
 
     <table>
@@ -40,44 +39,4 @@
   </div>
 </div>
 
-<script type="application/javascript">
-  function hide(elm) {
-    elm.style.display = "none";
-  }
-
-  function show(elm) {
-    elm.style.display = "";
-  }
-
-  function toggle(elm) {
-    if (elm.style.display === "none") {
-      show(elm);
-    }  else {
-      hide(elm);
-    }
-  }
-
-  function filterTable(value) {
-    var tableRows = document.querySelectorAll('[data-table-filterable]');
-
-    for (var i = 0; i < tableRows.length; i++) {
-      var row = tableRows[i];
-
-      if (value == "") {
-        show(row)
-      } else {
-        if (row.dataset.tableFilterable.includes(value)) {
-            show(row)
-        } else {
-            hide(row)
-        }
-      }
-    }
-  }
-
-  var input = document.querySelector('[data-table-filter]');
-
-  input.addEventListener('input', function handleInput(input) {
-    filterTable(input.target.value)
-  })
-</script>
+<%= render "partials/rake_ui/table_filterable" %>
