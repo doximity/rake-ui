@@ -10,6 +10,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: install bundler
+          command: gem update --system 3.2.0
+      - run:
           name: Which bundler?
           command: bundle -v
       - ruby/bundle-install
