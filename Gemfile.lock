@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rake-ui (0.1.0)
+    rake-ui (0.0.1)
       actionpack
       activesupport
       railties
