@@ -64,7 +64,7 @@ jobs:
           path: tmp/test-results
       - run:
           name: Run StandardRB
-          command: bundle exec rake standardrb --no-fix
+          command: bundle exec standardrb
       - store_artifacts:
           name: Saves documentation
           path: doc

@@ -7,7 +7,7 @@ module RakeUi
     private
 
     def black_hole_production
-      raise ActionController::RoutingError, 'Not Found' unless Rails.env.test? || Rails.env.development?
+      raise ActionController::RoutingError, "Not Found" unless Rails.env.test? || Rails.env.development?
     end
   end
 end
