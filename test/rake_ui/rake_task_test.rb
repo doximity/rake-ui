@@ -27,7 +27,7 @@ class RakeTaskTest < ActiveSupport::TestCase
   test "scrubs rake_definition_file to be html safe" do
     task = RakeUi::RakeTask.internal.first
 
-    assert_equal task.rake_definition_file, "/home/talos/projects/dox/rake-ui/test/dummy/lib/tasks/double_nested_tasks.rake:6"
+    assert_includes task.rake_definition_file, "/test/dummy/lib/tasks/double_nested_tasks.rake:6"
   end
 
   test "finds a task by id" do
