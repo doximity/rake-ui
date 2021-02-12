@@ -5,7 +5,9 @@ Rake UI is a Rails engine that enables the discovery and execution rake tasks in
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rake-ui'
+group :development do 
+  gem 'rake-ui'
+end
 ```
 
 And then execute:
@@ -21,9 +23,20 @@ $ gem install rake-ui
 once it is installed, mount the engine
 ```rb
 Rails.application.routes.draw do
-  mount RakeUi::Engine => "/rake-ui"
+  # only mounting when defined will allow us only include in development/test
+  if defined? RakeUi::Engine
+    mount RakeUi::Engine => "/rake-ui"
+  end
 end
 ```
+
+### Securing RakeUi
+
+This tool is built to enable developer productivity in development.  It exposes rake tasks through a UI.
+
+This tool will currently not work in production because we add a guard in the root controller to respond not found if the environment is development or test.  
+
+We recommend adding guards in your route to ensure that the proper authentication is in place to ensure that users are authenticated so that if this were ever to be rendered in production, you would be covered.  The best way for that is [router constraints](https://guides.rubyonrails.org/routing.html#specifying-constraints)
 
 ## Testing
 

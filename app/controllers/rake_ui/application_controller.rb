@@ -2,12 +2,12 @@
 
 module RakeUi
   class ApplicationController < ActionController::Base
-    before_action :guard_not_production
+    before_action :black_hole_production
 
     private
 
-    def guard_not_production
-      respond :unauthorized unless Rails.env.test? || Rails.env.development?
+    def black_hole_production
+      raise ActionController::RoutingError, 'Not Found' unless Rails.env.test? || Rails.env.development?
     end
   end
 end
