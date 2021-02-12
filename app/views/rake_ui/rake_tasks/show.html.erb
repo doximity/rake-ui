@@ -1,25 +1,62 @@
 <div class="row">
   <div class="section">
-    <h1>Submit Rake Task</h1>
-
-    <hr />
-
-    <h3>Task Name: <%= @rake_task.name_with_args %></h3>
+    <h2>Submit Rake Task</h2>
+    <h4>Task: <%= @rake_task.name_with_args %></h4>
 
     <% if @rake_task.full_comment %>
       <p>Comments: <%= @rake_task.full_comment %></p>
     <% end %>
 
-    <%= form_with url: rake_task_execute_path(@rake_task.id), method: :post, class: 'full-width-forms' do |f| %>
+    <hr />
+
+    <p data-rake-form-error style="color: red">
+
+    </p>
+
+    <%= form_with url: rake_task_execute_path(@rake_task.id), method: :post, class: 'full-width-forms', data: {"rake-form": true} do |f| %>
       <label>
-        <%= f.text_field :args, placeholder: "Rake arguments" %>
+        Rake Arguments
+        <%= f.text_field :args, placeholder: "with no brackets, eg: 1,2,3", data: { "rake-form-input-args": true } %>
       </label>
 
+      <br />
+
       <label>
-        <%= f.text_field :environment, placeholder: "Environmental variable overrides" %>
+        Environment Variables Overrides
+        <%= f.text_field :environment, placeholder: "eg: FOO=bar BAZ=biz", data: { "rake-form-input-environment": true }  %>
       </label>
+
+      <p>
+        Skip Argument and Environment Validations: <input type="checkbox" data-rake-form-input-skip-validations="true" />
+      </p>
 
       <%= f.submit "Submit", class: "btn solid blue" %>
     <% end %>
   </div>
 </div>
+
+<script type="application/javascript">
+  var _rakeForm = document.querySelector("[data-rake-form]");
+
+  var _skipValidationInput = document.querySelector("[data-rake-form-input-skip-validations]")
+  var _environmentInput = document.querySelector("[data-rake-form-input-environment]")
+  var _argsInput = document.querySelector("[data-rake-form-input-args]")
+  var _formError = document.querySelector("[data-rake-form-error]")
+
+  function _failWithError(event, message) {
+    event.preventDefault()
+    _formError.innerHTML = message;
+  }
+
+  _rakeForm.addEventListener("submit", function handleFormSubmit(event) {
+    if (_skipValidationInput.checked) {
+      return;
+    }
+
+    var argValue = _argsInput.value;
+    if (argValue.includes(" ") || argValue.includes("[") || argValue.includes("]")) {
+      _failWithError(event, "Do not include spaces or brackets in your rake arguments, disable validation if needed")
+    }
+  })
+
+</script>

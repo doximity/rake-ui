@@ -2,7 +2,20 @@
 
 module RakeUi
   class RakeTask
+    def self.to_safe_identifier(id)
+      CGI.escape(id)
+    end
+
+    def self.from_safe_identifier(id)
+      CGI.unescape(id)
+    end
+
     def self.load
+      # Enables 'desc' to show up as full_comments
+      if Rake::TaskManager.respond_to? :record_task_metadata
+        Rake::TaskManager.record_task_metadata = true
+      end
+
       Rails.application.load_tasks
       Rake::Task.tasks
     end
@@ -21,7 +34,7 @@ module RakeUi
 
     def self.find_by_id(id)
       t = all
-      i = CGI.unescape(id)
+      i = from_safe_identifier(id)
 
       t.find do |task|
         task.name == i
@@ -36,7 +49,7 @@ module RakeUi
     end
 
     def id
-      CGI.escape(name)
+      RakeUi::RakeTask.to_safe_identifier(name)
     end
 
     # actions will be something like #<Proc:0x000055a2737fe778@/some/rails/app/lib/tasks/auto_annotate_models.rake:4>

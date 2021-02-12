@@ -13,18 +13,18 @@
     <table>
       <thead>
       <tr>
-        <th>Rake Task</th>
-        <th>Date Ran</th>
         <th>Actions</th>
+        <th>Date Ran</th>
+        <th>Rake Task</th>
       </tr>
       </thead>
 
       <tbody>
       <% @rake_task_logs.each do |rake_task_log| %>
         <tr data-table-filterable="<%= rake_task_log.name %>">
-          <td><%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id) %></td>
-          <td><%= rake_task_log.date %></td>
           <td><%= link_to "View Logs", rake_task_log_path(rake_task_log.id), { class: 'btn' } %></td>
+          <td><%= rake_task_log.date %></td>
+          <td><%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id) %></td>
         </tr>
       <% end %>
       </tbody>
