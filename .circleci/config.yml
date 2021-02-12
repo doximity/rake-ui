@@ -115,7 +115,8 @@ workflows:
             - build
       - gem/publish:
           <<: *version_tags_only
-          to_nexus: true
+          name: gem-publish
+          to_rubygems: true
           pre_release: false
           requires:
             - gem/build
