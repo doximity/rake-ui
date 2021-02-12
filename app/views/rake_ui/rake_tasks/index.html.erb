@@ -21,7 +21,6 @@
         <tr>
           <th>Actions</th>
           <th>Name </th>
-          <th>Comment</th>
         </tr>
         </thead>
 
@@ -29,8 +28,14 @@
         <% @rake_tasks.each do |rake_task| %>
           <tr data-table-filterable="<%= rake_task.name_with_args %>">
             <td><%= link_to "Go Here", rake_task_path(rake_task.id), { class: 'btn' } %></td>
-            <td><%= link_to rake_task.name_with_args, rake_task_path(rake_task.id) %></td>
-            <td><%= rake_task.full_comment %></td>
+            <td>
+              <%= link_to rake_task.name_with_args, rake_task_path(rake_task.id) %>
+
+              <% if rake_task.full_comment %>
+                <br />
+                <p> Desc: <%= rake_task.full_comment %></p>
+              <% end %>
+            </td>
           </tr>
         <% end %>
         </tbody>
