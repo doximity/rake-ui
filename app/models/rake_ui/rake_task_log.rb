@@ -74,7 +74,7 @@ module RakeUi
 
     def self.find_by_id(id)
       all.find do |a|
-        a.id == id || a.id == CGI.escape(id)
+        a.id == id || a.id == RakeUi::RakeTask.to_safe_identifier(id)
       end
     end
 
@@ -139,7 +139,7 @@ module RakeUi
       @parsed_log_file_name ||= {}.tap do |parsed|
         date, name = id.split(FILE_DELIMITER, 2)
         parsed[:date] = date
-        parsed[:name] = CGI.unescape(name)
+        parsed[:name] = RakeUi::RakeTask.from_safe_identifier(name)
       end
     end
 

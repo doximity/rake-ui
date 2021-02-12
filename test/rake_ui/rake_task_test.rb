@@ -3,13 +3,8 @@
 require "test_helper"
 
 class RakeTaskTest < ActiveSupport::TestCase
-  test "it encodes the name as the id" do
-    task = RakeUi::RakeTask.internal.first
-    assert_equal task.id, CGI.escape(task.name)
-  end
-
   test "is able to build valid rake commands" do
-    task = RakeUi::RakeTask.internal.first
+    task = get_double_nested_task
 
     plain_rake = "rake #{task.name}"
     assert_equal plain_rake, task.build_rake_command
@@ -25,20 +20,38 @@ class RakeTaskTest < ActiveSupport::TestCase
   end
 
   test "scrubs rake_definition_file to be html safe" do
-    task = RakeUi::RakeTask.internal.first
+    task = get_double_nested_task
 
     assert_includes task.rake_definition_file, "/test/dummy/lib/tasks/double_nested_tasks.rake:6"
   end
 
-  test "finds a task by id" do
-    task = RakeUi::RakeTask.internal.first
+  test "returns the desc as full_comments" do
+    task = get_double_nested_task
 
-    assert_equal task.name, RakeUi::RakeTask.find_by_id(task.id).name
+    assert_equal task.full_comment, "Doubley Nested Task"
   end
 
-  test "full_comment description is present" do
-    task = RakeUi::RakeTask.internal.first
+  test "to_safe_identifier escapes" do
+    id = RakeUi::RakeTask.to_safe_identifier("foo bar:baz")
 
-    assert_not_nil task.full_comment
+    assert_equal id, "foo+bar%3Abaz"
+  end
+
+  test "from_safe_identifier unescapes" do
+    id = RakeUi::RakeTask.from_safe_identifier("foo+bar%3Abaz")
+
+    assert_equal id, "foo bar:baz"
+  end
+
+  test "it encodes the task name as the id" do
+    task = get_double_nested_task
+
+    assert_equal task.id, RakeUi::RakeTask.to_safe_identifier(task.name)
+  end
+
+  def get_double_nested_task
+    id = RakeUi::RakeTask.to_safe_identifier("double_nested:inside_double_nested:double_nested_task")
+
+    RakeUi::RakeTask.find_by_id(id)
   end
 end
