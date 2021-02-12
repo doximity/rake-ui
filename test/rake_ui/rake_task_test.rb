@@ -35,4 +35,10 @@ class RakeTaskTest < ActiveSupport::TestCase
 
     assert_equal task.name, RakeUi::RakeTask.find_by_id(task.id).name
   end
+
+  test "full_comment description is present" do
+    task = RakeUi::RakeTask.internal.first
+
+    assert_not_nil task.full_comment
+  end
 end

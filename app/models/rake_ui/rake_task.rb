@@ -3,6 +3,11 @@
 module RakeUi
   class RakeTask
     def self.load
+      # Enables 'desc' to show up as full_comments
+      if Rake::TaskManager.respond_to? :record_task_metadata
+        Rake::TaskManager.record_task_metadata = true
+      end
+
       Rails.application.load_tasks
       Rake::Task.tasks
     end
