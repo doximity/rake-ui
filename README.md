@@ -1,6 +1,18 @@
 # RakeUi
 Rake UI is a Rails engine that enables the discovery and execution rake tasks in a UI.
 
+![Example](./README_example.gif)
+
+## Routes
+
+NOTE: Relative to mountpoint in application
+
+ - GET /rake_tasks(.html/.json) - list all available rake tasks
+ - GET /rake_tasks/:id(.html/.json) - list info a single tasks
+ - POST /rake_tasks/:id/execute - execute a rake task
+ - GET /rake_task_logs(.html/.json) - list rake task history
+ - GET /rake_task_logs/:id(.html/.json) - list a single rake task history
+
 ## Installation
 Add this line to your application's Gemfile:
 
