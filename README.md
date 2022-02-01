@@ -17,9 +17,7 @@ NOTE: Relative to mountpoint in application
 Add this line to your application's Gemfile:
 
 ```ruby
-group :development do 
-  gem 'rake-ui'
-end
+gem 'rake-ui'
 ```
 
 And then execute:
@@ -46,7 +44,13 @@ end
 
 This tool is built to enable developer productivity in development.  It exposes rake tasks through a UI.
 
-This tool will currently not work in production because we add a guard in the root controller to respond not found if the environment is development or test.  
+This tool will currently not work in production because we add a guard in the root controller to respond not found if the environment is development or test. You may override this guard clause with the following configuration.
+
+```rb
+RakeUi.configuration do |config|
+  config.allow_production = true
+end
+```
 
 We recommend adding guards in your route to ensure that the proper authentication is in place to ensure that users are authenticated so that if this were ever to be rendered in production, you would be covered.  The best way for that is [router constraints](https://guides.rubyonrails.org/routing.html#specifying-constraints)
 
