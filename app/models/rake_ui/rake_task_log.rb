@@ -53,13 +53,13 @@ module RakeUi
       end
 
       new(id: id,
-          name: name,
-          args: args,
-          environment: environment,
-          rake_command: rake_command,
-          rake_definition_file: rake_definition_file,
-          log_file_name: log_file_name,
-          log_file_full_path: log_file_full_path)
+        name: name,
+        args: args,
+        environment: environment,
+        rake_command: rake_command,
+        rake_definition_file: rake_definition_file,
+        log_file_name: log_file_name,
+        log_file_full_path: log_file_full_path)
     end
 
     def self.all
