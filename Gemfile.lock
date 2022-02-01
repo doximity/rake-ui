@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rake-ui (0.0.1)
+    rake-ui (0.1.0)
       actionpack
       activesupport
       railties
@@ -183,4 +183,4 @@ DEPENDENCIES
   standardrb
 
 BUNDLED WITH
-   2.2.8
+   2.2.14
