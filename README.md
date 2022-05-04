@@ -69,7 +69,7 @@ nodemon -w ./app/models/*  -e "rb" --exec "rake test TEST=test/rake_ui/rake_task
 ```
 
 ## Contributing
-Contributing information available in [CONTRIBUTING](./CONTRIBUTING.md)
+See [CONTRIBUTING](./CONTRIBUTING.md)
 
 ## License
 The gem is available as open source under the terms of the [Apache 2.0 License](./LICENSE).
