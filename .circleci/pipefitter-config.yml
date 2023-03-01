@@ -1,0 +1,3 @@
+ruby-versions: ["supported-versions"]
+run-matrix-separately: true
+test-job-name: "build"
