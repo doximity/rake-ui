@@ -9,4 +9,4 @@ group :development do
 end
 
 gem "pry", group: [:development, :test], require: false
-gem "rails", group: [:development, :test], require: false
+gem "rails", "~> 6.1.7.3"
