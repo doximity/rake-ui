@@ -39,7 +39,7 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
     def mock_task.id
       "some_identifier"
     end
-    mock_task.expect :call, OpenStruct.new(id: "1234_path"), [{args: "1,2,3", environment: "FOO=bar"}]
+    mock_task.expect(:call, OpenStruct.new(id: "1234_path"), {args: "1,2,3", environment: "FOO=bar"})
 
     mock_find_by_id = lambda do |args|
       assert args, "some_identifier"
