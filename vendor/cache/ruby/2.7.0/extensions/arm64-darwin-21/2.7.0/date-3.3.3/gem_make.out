@@ -1,0 +1,21 @@
+current directory: /Users/nova/work/rake-ui/vendor/cache/ruby/2.7.0/gems/date-3.3.3/ext/date
+/Users/nova/.asdf/installs/ruby/2.7.6/bin/ruby -I /Users/nova/.asdf/installs/ruby/2.7.6/lib/ruby/2.7.0 -r ./siteconf20230817-48489-1vzxuem.rb extconf.rb
+checking for rb_category_warn()... no
+checking for timezone in time.h with  -Werror... yes
+checking for altzone in time.h with  -Werror... no
+creating Makefile
+
+current directory: /Users/nova/work/rake-ui/vendor/cache/ruby/2.7.0/gems/date-3.3.3/ext/date
+make "DESTDIR=" clean
+
+current directory: /Users/nova/work/rake-ui/vendor/cache/ruby/2.7.0/gems/date-3.3.3/ext/date
+make "DESTDIR="
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.bundle
+
+current directory: /Users/nova/work/rake-ui/vendor/cache/ruby/2.7.0/gems/date-3.3.3/ext/date
+make "DESTDIR=" install
+/opt/homebrew/bin/ginstall -c -m 0755 date_core.bundle ./.gem.20230817-48489-1s063e0
