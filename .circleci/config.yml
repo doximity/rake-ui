@@ -43,7 +43,7 @@ jobs:
             bundle config set --local retry '3'
       - run:
           name: Install Ruby Dependencies
-          command: bundle install --local --frozen
+          command: bundle install --local --jobs=4 --retry=3
       - run:
           name: Run Tests
           command: bundle exec rake test
