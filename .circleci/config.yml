@@ -2,9 +2,6 @@
 
 version: 2.1
 
-orbs:
-  gem: doximity/gem-publisher@0
-
 executors:
   ruby-latest:
     resource_class: small
@@ -42,20 +39,13 @@ jobs:
           name: Install Bundler specific version
           command: |
             gem install bundler --version "${BUNDLE_VERSION}" --force
-      - restore_cache:
-          keys:
-            - v1-bundle-{{ checksum "Gemfile.lock" }}-
       - run:
           name: Install Bundler specific version
           command: |
             gem install bundler --version "~> 1.17" --force
       - run:
           name: Install Ruby Dependencies
-          command: bundle check --path=vendor/bundle || bundle install
-      - save_cache:
-          key: v1-bundle-{{ checksum "Gemfile.lock" }}-
-          paths:
-            - vendor/bundle
+          command: bundle install --local --frozen
       - run:
           name: Run Tests
           command: bundle exec rake test
@@ -80,44 +70,13 @@ workflows:
     jobs:
       - build:
           <<: *pr_only
-      - gem/build:
-          executor: ruby-latest
-          requires:
-            - build
-      - pre-release-approval:
-          type: approval
-          requires:
-            - gem/build
-      - gem/publish:
-          to_nexus: true
-          pre_release: true
-          requires:
-            - pre-release-approval
-          context: artifact_publishing
 
   trunk:
     jobs:
       - build:
           <<: *master_only
-      - gem/build:
-          executor: ruby-latest
-          requires:
-            - build
 
   final-release:
     jobs:
       - build:
           <<: *version_tags_only
-      - gem/build:
-          <<: *version_tags_only
-          executor: ruby-latest
-          requires:
-            - build
-      - gem/publish:
-          <<: *version_tags_only
-          name: gem-publish
-          to_rubygems: true
-          pre_release: false
-          requires:
-            - gem/build
-          context: artifact_publishing
