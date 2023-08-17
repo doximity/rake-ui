@@ -39,10 +39,10 @@ jobs:
           name: Install Bundler specific version
           command: |
             gem install bundler --version "${BUNDLE_VERSION}" --force
-      - run:
-          name: Install Bundler specific version
-          command: |
-            gem install bundler --version "~> 1.17" --force
+            bundle config set --local path 'vendor/bundle'
+            bundle config set --local frozen 'true'
+            bundle config set --local jobs '4'
+            bundle config set --local retry '3'
       - run:
           name: Install Ruby Dependencies
           command: bundle install --local --frozen
