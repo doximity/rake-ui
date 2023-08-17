@@ -7,8 +7,6 @@ executors:
     resource_class: small
     docker:
       - image: circleci/ruby:2.7.2
-        environment:
-          BUNDLE_VERSION: "~> 2.2.8"
 
 # yaml anchor filters
 master_only: &master_only
