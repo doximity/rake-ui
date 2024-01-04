@@ -151,7 +151,8 @@ module RakeUi
     #
     # { name: 'foo', id: 'baz' }
     def parsed_file_contents
-      return @parsed_file_contents if defined? @parsed_file_contents
+      return @parsed_file_contents if defined?(@parsed_file_contents)
+      return {} unless log_file_full_path
 
       @parsed_file_contents = {}.tap do |parsed|
         File.foreach(log_file_full_path).first(9).each do |line|
