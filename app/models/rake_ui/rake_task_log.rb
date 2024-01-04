@@ -112,10 +112,6 @@ module RakeUi
       super || parsed_file_contents[:log_file_name]
     end
 
-    def log_file_full_path
-      super || parsed_file_contents[:log_file_full_path]
-    end
-
     def rake_command_with_logging
       "#{rake_command} 2>&1 >> #{log_file_full_path}"
     end
@@ -151,8 +147,7 @@ module RakeUi
     #
     # { name: 'foo', id: 'baz' }
     def parsed_file_contents
-      return @parsed_file_contents if defined?(@parsed_file_contents)
-      return {} unless log_file_full_path
+      return @parsed_file_contents if defined? @parsed_file_contents
 
       @parsed_file_contents = {}.tap do |parsed|
         File.foreach(log_file_full_path).first(9).each do |line|
