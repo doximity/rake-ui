@@ -11,8 +11,6 @@ module RakeUi
       :is_internal_task,
       :sources].freeze
 
-    skip_before_action :verify_authenticity_token
-
     def index
       @rake_tasks = RakeUi::RakeTask.all
 
