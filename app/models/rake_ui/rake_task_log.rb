@@ -112,10 +112,6 @@ module RakeUi
       super || parsed_file_contents[:log_file_name]
     end
 
-    def log_file_full_path
-      super || parsed_file_contents[:log_file_full_path]
-    end
-
     def rake_command_with_logging
       "#{rake_command} 2>&1 >> #{log_file_full_path}"
     end
