@@ -1,0 +1,19 @@
+name: "Version Health Report"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    - cron: '37 13 * * 1-5'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  version_health:
+    uses: doximity/dox-gh-shared-workflows/.github/workflows/version_health.yml@master
+    with:
+      primary_branch: ${{github.event.repository.default_branch}}
+    secrets: inherit
