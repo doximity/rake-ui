@@ -80,7 +80,7 @@ module RakeUi
       # end
     end
 
-    def call(args: nil, environment: nil)
+    def call(args: nil, environment: nil, user_email: nil)
       rake_command = build_rake_command(args: args, environment: environment)
 
       rake_task_log = RakeUi::RakeTaskLog.build_new_for_command(
@@ -89,7 +89,8 @@ module RakeUi
         environment: environment,
         rake_command: rake_command,
         rake_definition_file: rake_definition_file,
-        raker_id: id
+        raker_id: id,
+        user_email: user_email
       )
 
       puts "[rake_ui] [rake_task] [forked] #{rake_task_log.rake_command_with_logging}"

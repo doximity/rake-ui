@@ -28,7 +28,15 @@ module RakeUi
       )
     end
 
-    def self.build_new_for_command(name:, rake_definition_file:, rake_command:, raker_id:, args: nil, environment: nil)
+    def self.build_new_for_command(
+      name:,
+      rake_definition_file:,
+      rake_command:,
+      raker_id:,
+      args: nil,
+      environment: nil,
+      user_email: nil
+    )
       create_tmp_file_dir
 
       date = Time.now.strftime(ID_DATE_FORMAT)
@@ -37,6 +45,7 @@ module RakeUi
       log_file_full_path = REPOSITORY_DIR.join(log_file_name).to_s
 
       File.open(log_file_full_path, "w+") do |f|
+        f.puts "ran by#{FILE_ITEM_SEPARATOR}#{user_email}"
         f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
         f.puts "name#{FILE_ITEM_SEPARATOR}#{name}"
         f.puts "date#{FILE_ITEM_SEPARATOR}#{date}"
