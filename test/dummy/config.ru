@@ -5,7 +5,4 @@
 require_relative "config/environment"
 
 run Rails.application
-
-if Rails.application.respond_to? :load_server
-  Rails.application.load_server
-end
+Rails.application.load_server

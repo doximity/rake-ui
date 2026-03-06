@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateRakeUiTaskLogs < ActiveRecord::Migration[6.0]
+class CreateRakeUiTaskLogs < ActiveRecord::Migration[7.0]
   def change
     create_table :rake_ui_task_logs do |t|
       t.string :log_id, null: false, index: {unique: true}

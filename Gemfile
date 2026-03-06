@@ -9,6 +9,5 @@ group :development do
 end
 
 gem "pry", group: [:development, :test], require: false
-gem "rails", "~> 6.1.7.4", group: [:development, :test], require: false
-gem "logger", "~> 1.6.0", group: [:development, :test]
+gem "rails", "~> 7.0.0", group: [:development, :test], require: false
 gem "minitest", "~> 5.0", group: [:development, :test]
