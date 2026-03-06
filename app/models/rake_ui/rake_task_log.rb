@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "ostruct"
+
 module RakeUi
   class RakeTaskLog < OpenStruct
     # year-month-day-hour(24hour time)-minute-second-utc
