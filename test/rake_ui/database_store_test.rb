@@ -217,4 +217,3 @@ class DatabaseStoreTest < ActiveSupport::TestCase
     log
   end
 end
-

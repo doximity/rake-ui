@@ -54,4 +54,3 @@ class FileStoreTest < ActiveSupport::TestCase
     assert log.finished?
   end
 end
-

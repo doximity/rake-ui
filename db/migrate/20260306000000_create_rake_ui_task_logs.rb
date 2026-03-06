@@ -3,7 +3,7 @@
 class CreateRakeUiTaskLogs < ActiveRecord::Migration[6.0]
   def change
     create_table :rake_ui_task_logs do |t|
-      t.string :log_id, null: false, index: { unique: true }
+      t.string :log_id, null: false, index: {unique: true}
       t.string :name
       t.string :date
       t.string :args
@@ -20,4 +20,3 @@ class CreateRakeUiTaskLogs < ActiveRecord::Migration[6.0]
     add_index :rake_ui_task_logs, :created_at
   end
 end
-

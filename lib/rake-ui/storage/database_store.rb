@@ -81,8 +81,7 @@ module RakeUi
           .limit(200)
           .pluck(:id)
 
-        deleted = RakeUi::TaskLogRecord.where.not(id: ids_to_keep).delete_all
-        deleted
+        RakeUi::TaskLogRecord.where.not(id: ids_to_keep).delete_all
       end
 
       def file_contents(log)
@@ -101,7 +100,11 @@ module RakeUi
           # If the task just finished, persist to DB and clean up temp file
           if content.include?(FINISHED_STRING) && record
             record.update!(output: content, finished: true)
-            File.delete(tmp_file) rescue nil
+            begin
+              File.delete(tmp_file)
+            rescue
+              nil
+            end
           end
 
           content
@@ -121,7 +124,11 @@ module RakeUi
           if content.include?(FINISHED_STRING)
             # Persist to DB and mark finished
             record&.update!(output: content, finished: true)
-            File.delete(tmp_file) rescue nil
+            begin
+              File.delete(tmp_file)
+            rescue
+              nil
+            end
             return true
           end
         end
@@ -173,5 +180,3 @@ module RakeUi
     end
   end
 end
-
-

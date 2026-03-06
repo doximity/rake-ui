@@ -5,4 +5,3 @@ module RakeUi
     self.table_name = "rake_ui_task_logs"
   end
 end
-
