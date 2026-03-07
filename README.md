@@ -40,6 +40,38 @@ Rails.application.routes.draw do
 end
 ```
 
+### Storage Backends
+
+RakeUi supports two storage backends for task execution logs: **file** (default) and **database**.
+
+#### File Storage (default)
+
+No additional setup is needed. Task logs are stored as text files in `tmp/rake_ui/` within your Rails application. This is the default behavior.
+
+#### Database Storage
+
+If you prefer to store task logs in your database, run the install generator to create the migration:
+
+```bash
+$ rails generate rake_ui:install
+```
+
+Then run the migration:
+
+```bash
+$ rails db:migrate
+```
+
+Finally, configure RakeUi to use the database backend in an initializer:
+
+```rb
+# config/initializers/rake_ui.rb
+RakeUi.configuration do |config|
+  config.storage_backend = :database
+end
+```
+
+
 ### Configuration
 
 #### Tracking Who Executes Tasks
