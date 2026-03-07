@@ -97,14 +97,14 @@ module RakeUi
         if File.exist?(tmp_file)
           content = File.read(tmp_file)
 
-          # If the task just finished, persist to DB and clean up temp file
+          # If the task just finished, persist to DB
           if content.include?(FINISHED_STRING) && record
             record.update!(output: content, finished: true)
-            begin
-              File.delete(tmp_file)
-            rescue
-              nil
-            end
+            # begin
+            #   File.delete(tmp_file)
+            # rescue
+            #   nil
+            # end
           end
 
           content
