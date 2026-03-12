@@ -9,6 +9,11 @@ module RakeUi
       FILE_DELIMITER = "____"
       TMP_DIR = -> { Rails.root.join("tmp", "rake_ui") }
 
+      # Maximum lengths for database string columns (VARCHAR 255 default)
+      MAX_STRING_LENGTH = 255
+      # Maximum length for text column output (~16 MB, safe for MySQL MEDIUMTEXT / unlimited in Postgres & SQLite)
+      MAX_OUTPUT_LENGTH = 16_777_215
+
       def create_log(name:, rake_definition_file:, rake_command:, raker_id:, args: nil, environment: nil, executed_by: nil)
         ensure_tmp_dir
 
@@ -23,16 +28,16 @@ module RakeUi
           f.puts TASK_HEADER_OUTPUT_DELIMITER.to_s
         end
 
-        # Persist metadata to the database
+        # Persist metadata to the database (truncate to fit column limits)
         RakeUi::TaskLogRecord.create!(
-          log_id: id,
-          name: name,
-          date: date,
-          args: args,
-          environment: environment,
-          rake_command: rake_command,
-          rake_definition_file: rake_definition_file,
-          executed_by: executed_by,
+          log_id: truncate_string(id),
+          name: truncate_string(name),
+          date: truncate_string(date),
+          args: truncate_string(args),
+          environment: truncate_string(environment),
+          rake_command: truncate_string(rake_command),
+          rake_definition_file: truncate_string(rake_definition_file),
+          executed_by: truncate_string(executed_by),
           output: nil,
           finished: false
         )
@@ -99,7 +104,7 @@ module RakeUi
 
           # If the task just finished, persist to DB
           if content.include?(FINISHED_STRING) && record
-            record.update!(output: content, finished: true)
+            record.update!(output: truncate_output(content), finished: true)
             # begin
             #   File.delete(tmp_file)
             # rescue
@@ -123,7 +128,7 @@ module RakeUi
           content = File.read(tmp_file)
           if content.include?(FINISHED_STRING)
             # Persist to DB and mark finished
-            record&.update!(output: content, finished: true)
+            record&.update!(output: truncate_output(content), finished: true)
             begin
               File.delete(tmp_file)
             rescue
@@ -158,6 +163,18 @@ module RakeUi
 
       def ensure_tmp_dir
         FileUtils.mkdir_p(TMP_DIR.call.to_s)
+      end
+
+      def truncate_string(value)
+        return value unless value.is_a?(String) && value.length > MAX_STRING_LENGTH
+
+        value[0, MAX_STRING_LENGTH]
+      end
+
+      def truncate_output(value)
+        return value unless value.is_a?(String) && value.length > MAX_OUTPUT_LENGTH
+
+        value[0, MAX_OUTPUT_LENGTH]
       end
 
       def record_to_log(record)

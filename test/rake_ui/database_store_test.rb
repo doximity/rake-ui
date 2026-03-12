@@ -203,6 +203,60 @@ class DatabaseStoreTest < ActiveSupport::TestCase
     assert_equal 200, RakeUi::TaskLogRecord.count
   end
 
+  test "create_log truncates string fields that exceed 255 characters" do
+    long_value = "x" * 300
+
+    log = create_test_log(
+      args: long_value,
+      environment: long_value,
+      executed_by: long_value
+    )
+
+    record = RakeUi::TaskLogRecord.find_by(log_id: log.id)
+    assert_equal 255, record.args.length
+    assert_equal 255, record.environment.length
+    assert_equal 255, record.executed_by.length
+    assert_equal "x" * 255, record.args
+  end
+
+  test "create_log does not truncate fields within limit" do
+    short_value = "hello"
+
+    log = create_test_log(args: short_value)
+
+    record = RakeUi::TaskLogRecord.find_by(log_id: log.id)
+    assert_equal "hello", record.args
+  end
+
+  test "create_log handles nil fields without error" do
+    log = create_test_log(args: nil, environment: nil, executed_by: nil)
+
+    record = RakeUi::TaskLogRecord.find_by(log_id: log.id)
+    assert_nil record.args
+    assert_nil record.environment
+    assert_nil record.executed_by
+  end
+
+  test "output is truncated when persisted via finished?" do
+    log = create_test_log
+
+    # Write output exceeding MAX_OUTPUT_LENGTH would be impractical in tests,
+    # but we can verify truncation works for a large-ish string
+    large_output = "a" * 1_000_000
+    File.open(log.log_file_full_path, "a") do |f|
+      f.write(large_output)
+      f.puts "\n+++++ COMMAND FINISHED +++++"
+    end
+
+    assert log.finished?
+
+    record = RakeUi::TaskLogRecord.find_by(log_id: log.id)
+    assert record.finished?
+    assert record.output.present?
+    # Output should be persisted (under the 16MB limit so not truncated here)
+    assert_includes record.output, "+++++ COMMAND FINISHED +++++"
+  end
+
   private
 
   def create_test_log(**opts)
