@@ -25,9 +25,9 @@ module RakeUi
       end
 
       if RakeUi.configuration.whitelisted_prefixes.empty?
-        return Rake::Task.tasks
+        Rake::Task.tasks
       else
-        return Rake::Task.tasks.select do |task|
+        Rake::Task.tasks.select do |task|
           RakeUi.configuration.whitelisted_prefixes.any? do |prefix|
             task.name.start_with?(prefix)
           end
@@ -71,7 +71,7 @@ module RakeUi
     end
 
     def has_arguments?
-      arg_names && arg_names.any?
+      arg_names&.any?
     end
 
     def argument_names

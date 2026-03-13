@@ -6,7 +6,7 @@ executors:
   ruby-latest:
     resource_class: small
     docker:
-      - image: circleci/ruby:2.7.2
+      - image: cimg/ruby:3.3.10
 
 # yaml anchor filters
 master_only: &master_only
@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Install Bundler specific version
           command: |
-            gem install bundler --version "${BUNDLE_VERSION}" --force
+            gem install bundler --version "2.4.3" --force
             bundle config set --local path 'vendor/bundle'
             bundle config set --local frozen 'true'
             bundle config set --local jobs '4'

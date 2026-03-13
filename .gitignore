@@ -12,3 +12,4 @@
 /test/dummy/tmp/development_secret.txt
 
 .byebug_history
+.idea

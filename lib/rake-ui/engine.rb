@@ -3,6 +3,8 @@
 require "rake"
 require "fileutils"
 require "open3"
+require "rake-ui/storage/file_store"
+require "rake-ui/storage/database_store"
 
 module RakeUi
   class Engine < ::Rails::Engine

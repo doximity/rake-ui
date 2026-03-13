@@ -76,7 +76,7 @@ module RakeUi
     def build_args_from_params
       individual_args = []
       index = 0
-      
+
       while params.key?("arg_#{index}")
         individual_args << params["arg_#{index}"]
         index += 1
