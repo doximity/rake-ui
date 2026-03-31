@@ -11,7 +11,7 @@ class CreateRakeUiTaskLogs < ActiveRecord::Migration[7.0]
       t.string :rake_command
       t.string :rake_definition_file
       t.string :executed_by
-      t.text :output
+      t.text :output, size: :long
       t.boolean :finished, default: false, null: false
 
       t.timestamps
