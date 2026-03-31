@@ -1,47 +1,361 @@
-<div class="row">
-  <div class="section">
-    <h1>Rake Tasks</h1>
-
-    <hr />
-
-    <div class="section">
-      <%= link_to "Show all tasks", rake_tasks_path(show_all: "yes"), { class: 'btn' } %>
-      <%= link_to "Show only internal tasks", rake_tasks_path, { class: 'btn' } %>
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Rake Tasks</h1>
+      <p class="text-sm text-muted-foreground mt-1">Browse and execute available tasks</p>
     </div>
-
-    <div class="section">
-      <p>
-        Filter Table <input data-table-filter placeholder="Enter Text" />
-      </p>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to rake_tasks_path, class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-4 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground" do %>
+        Internal Only
+      <% end %>
+      <%= link_to rake_tasks_path(show_all: "yes"), class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-4 bg-primary text-primary-foreground shadow hover:bg-primary/90" do %>
+        Show All Tasks
+      <% end %>
     </div>
+  </div>
 
-    <div style="word-break: break-all">
-      <table>
-        <thead>
-        <tr>
-          <th>Actions</th>
-          <th>Name </th>
-        </tr>
-        </thead>
+  <!-- Two Panel Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 h-[calc(100vh-220px)]">
+    <!-- Left Panel - Task List -->
+    <div class="lg:col-span-2 flex flex-col rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+      <!-- Search -->
+      <div class="p-4 border-b border-border">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"></i>
+          <input 
+            id="task-search"
+            placeholder="Search tasks..." 
+            class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+        </div>
+      </div>
 
-        <tbody>
-        <% @rake_tasks.each do |rake_task| %>
-          <tr data-table-filterable="<%= rake_task.name_with_args %>">
-            <td><%= link_to "Go Here", rake_task_path(rake_task.id), { class: 'btn' } %></td>
-            <td>
-              <%= link_to rake_task.name_with_args, rake_task_path(rake_task.id) %>
-
+      <!-- Task List -->
+      <div class="flex-1 overflow-y-auto">
+        <div class="divide-y divide-border">
+          <% @rake_tasks.each_with_index do |rake_task, index| %>
+            <div 
+              data-task-item
+              data-task-id="<%= rake_task.id %>"
+              data-task-name="<%= rake_task.name_with_args %>"
+              data-task-description="<%= rake_task.full_comment.to_s.gsub('"', '&quot;') %>"
+              data-task-has-args="<%= rake_task.has_arguments? %>"
+              data-task-arg-names="<%= rake_task.argument_names.to_json.gsub('"', '&quot;') %>"
+              data-task-arg-count="<%= rake_task.argument_count %>"
+              class="task-item p-4 cursor-pointer hover:bg-muted/50 transition-colors <%= 'bg-muted/50' if index == 0 %>"
+              onclick="selectTask(this)"
+            >
+              <div class="flex items-center gap-2">
+                <div class="font-mono text-sm font-medium text-foreground break-all flex-1">
+                  <%= rake_task.name_with_args %>
+                </div>
+                <% if rake_task.has_arguments? %>
+                  <span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary shrink-0">
+                    <%= rake_task.argument_count %> <%= rake_task.argument_count == 1 ? 'arg' : 'args' %>
+                  </span>
+                <% end %>
+              </div>
               <% if rake_task.full_comment %>
-                <br />
-                <p> Desc: <%= rake_task.full_comment %></p>
+                <p class="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  <%= rake_task.full_comment %>
+                </p>
               <% end %>
-            </td>
-          </tr>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Task Details & Execute -->
+    <div class="lg:col-span-3 flex flex-col rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+      <div id="task-details" class="flex-1 overflow-y-auto">
+        <% if @rake_tasks.first %>
+          <!-- Initial task details -->
+          <div class="p-6 space-y-6">
+            <!-- Task Info -->
+            <div class="space-y-2">
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <i data-lucide="terminal" class="h-5 w-5 text-primary"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-muted-foreground">Task Name</p>
+                  <p id="selected-task-name" class="font-mono text-base font-semibold mt-1 break-all">
+                    <%= @rake_tasks.first.name_with_args %>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div id="task-description-container" class="space-y-2">
+              <label class="text-sm font-medium">Description</label>
+              <div id="selected-task-description" class="rounded-md border border-input bg-muted/30 px-4 py-3 text-sm text-muted-foreground whitespace-pre-wrap">
+                <%= @rake_tasks.first.full_comment.presence || 'No description available' %>
+              </div>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="task-error" class="hidden rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            </div>
+
+            <!-- Form -->
+            <form id="task-form" class="space-y-4" data-execute-path-template="<%= rake_task_execute_path(':task_id') %>">
+              <input type="hidden" id="selected-task-id" value="<%= @rake_tasks.first.id %>">
+              
+              <!-- Arguments Container (will be dynamically populated) -->
+              <div id="task-arguments-container">
+                <% if @rake_tasks.first.has_arguments? %>
+                  <!-- Individual Argument Fields -->
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                      <label class="text-sm font-medium">Task Arguments</label>
+                      <span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                        <%= @rake_tasks.first.argument_count %> required
+                      </span>
+                    </div>
+                    <% @rake_tasks.first.argument_names.each_with_index do |arg_name, index| %>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">
+                          <%= arg_name.titleize %>
+                        </label>
+                        <input 
+                          type="text"
+                          name="arg_<%= index %>"
+                          data-arg-index="<%= index %>"
+                          placeholder="Enter <%= arg_name %>" 
+                          class="task-arg-input flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        />
+                      </div>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <!-- Generic Arguments Field -->
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium leading-none">
+                      Rake Arguments
+                    </label>
+                    <input 
+                      id="task-args"
+                      type="text"
+                      placeholder="e.g., 1,2,3 (no brackets or spaces)" 
+                      class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                    <p class="text-xs text-muted-foreground">Comma-separated values without brackets</p>
+                  </div>
+                <% end %>
+              </div>
+
+              <!-- Environment -->
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-none">
+                  Environment Variables
+                </label>
+                <input 
+                  id="task-environment"
+                  type="text"
+                  placeholder="e.g., FOO=bar BAZ=biz" 
+                  class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+                <p class="text-xs text-muted-foreground">Space-separated key=value pairs</p>
+              </div>
+
+              <!-- Validation Checkbox -->
+              <div class="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="skip-validations"
+                  class="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                />
+                <label for="skip-validations" class="text-sm font-medium leading-none">
+                  Skip argument and environment validations
+                </label>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-3 pt-2">
+                <button 
+                  type="submit"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-10 px-6 bg-primary text-primary-foreground shadow hover:bg-primary/90"
+                >
+                  <i data-lucide="play" class="mr-2 h-4 w-4"></i>
+                  Execute Task
+                </button>
+              </div>
+            </form>
+          </div>
+        <% else %>
+          <div class="flex items-center justify-center h-full text-muted-foreground">
+            <p>No tasks available</p>
+          </div>
         <% end %>
-        </tbody>
-      </table>
+      </div>
     </div>
   </div>
 </div>
 
-<%= render "partials/rake_ui/table_filterable" %>
+<script type="application/javascript">
+  // Task selection
+  function selectTask(element) {
+    // Remove active state from all items
+    document.querySelectorAll('[data-task-item]').forEach(function(item) {
+      item.classList.remove('bg-muted/50');
+    });
+    
+    // Add active state to selected item
+    element.classList.add('bg-muted/50');
+    
+    // Update details panel
+    var taskId = element.dataset.taskId;
+    var taskName = element.dataset.taskName;
+    var taskDescription = element.dataset.taskDescription || 'No description available';
+    var hasArgs = element.dataset.taskHasArgs === 'true';
+    var argNames = hasArgs ? JSON.parse(element.dataset.taskArgNames.replace(/&quot;/g, '"')) : [];
+    var argCount = parseInt(element.dataset.taskArgCount || '0');
+    
+    document.getElementById('selected-task-id').value = taskId;
+    document.getElementById('selected-task-name').textContent = taskName;
+    document.getElementById('selected-task-description').textContent = taskDescription;
+    
+    // Rebuild arguments container
+    var argsContainer = document.getElementById('task-arguments-container');
+    if (hasArgs && argNames.length > 0) {
+      // Build individual argument fields
+      var html = '<div class="space-y-4">';
+      html += '<div class="flex items-center gap-2">';
+      html += '<label class="text-sm font-medium">Task Arguments</label>';
+      html += '<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">';
+      html += argCount + ' required</span></div>';
+      
+      argNames.forEach(function(argName, index) {
+        var titleized = argName.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+        html += '<div class="space-y-2">';
+        html += '<label class="text-sm font-medium leading-none">' + titleized + '</label>';
+        html += '<input type="text" name="arg_' + index + '" data-arg-index="' + index + '" ';
+        html += 'placeholder="Enter ' + argName + '" ';
+        html += 'class="task-arg-input flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />';
+        html += '</div>';
+      });
+      html += '</div>';
+      argsContainer.innerHTML = html;
+    } else {
+      // Build generic args field
+      var html = '<div class="space-y-2">';
+      html += '<label class="text-sm font-medium leading-none">Rake Arguments</label>';
+      html += '<input id="task-args" type="text" placeholder="e.g., 1,2,3 (no brackets or spaces)" ';
+      html += 'class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />';
+      html += '<p class="text-xs text-muted-foreground">Comma-separated values without brackets</p>';
+      html += '</div>';
+      argsContainer.innerHTML = html;
+    }
+    
+    // Clear other form fields
+    document.getElementById('task-environment').value = '';
+    document.getElementById('skip-validations').checked = false;
+    document.getElementById('task-error').classList.add('hidden');
+  }
+  
+  // Search functionality
+  document.getElementById('task-search').addEventListener('input', function(e) {
+    var searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('[data-task-item]').forEach(function(item) {
+      var taskName = item.dataset.taskName.toLowerCase();
+      var taskDesc = item.dataset.taskDescription.toLowerCase();
+      
+      if (taskName.includes(searchTerm) || taskDesc.includes(searchTerm)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+  
+  // Form submission
+  document.getElementById('task-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var errorDiv = document.getElementById('task-error');
+    errorDiv.classList.add('hidden');
+    
+    var skipValidations = document.getElementById('skip-validations').checked;
+    
+    // Check if we have individual argument fields or generic args field
+    var individualArgInputs = document.querySelectorAll('.task-arg-input');
+    var genericArgsInput = document.getElementById('task-args');
+    
+    // Validation
+    if (!skipValidations) {
+      // Validate individual argument fields
+      if (individualArgInputs.length > 0) {
+        for (var i = 0; i < individualArgInputs.length; i++) {
+          var input = individualArgInputs[i];
+          if (!input.value || input.value.trim() === '') {
+            errorDiv.textContent = 'All arguments are required. Please fill in all fields or skip validation.';
+            errorDiv.classList.remove('hidden');
+            return;
+          }
+        }
+      } else if (genericArgsInput && genericArgsInput.value) {
+        // Validate generic args field
+        var argsValue = genericArgsInput.value;
+        if (argsValue.includes(' ') || argsValue.includes('[') || argsValue.includes(']')) {
+          errorDiv.textContent = 'Do not include spaces or brackets in your rake arguments, disable validation if needed';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+      }
+    }
+    
+    // Create and submit form
+    var taskId = document.getElementById('selected-task-id').value;
+    var executePathTemplate = document.getElementById('task-form').dataset.executePathTemplate;
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = executePathTemplate.replace(':task_id', taskId);
+    
+    // Add CSRF token
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+      var csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'authenticity_token';
+      csrfInput.value = csrfToken.content;
+      form.appendChild(csrfInput);
+    }
+    
+    // Add arguments (either individual or generic)
+    if (individualArgInputs.length > 0) {
+      // Add individual arguments
+      individualArgInputs.forEach(function(input) {
+        var argInput = document.createElement('input');
+        argInput.type = 'hidden';
+        argInput.name = input.name;
+        argInput.value = input.value;
+        form.appendChild(argInput);
+      });
+    } else if (genericArgsInput) {
+      // Add generic args
+      var argsInput = document.createElement('input');
+      argsInput.type = 'hidden';
+      argsInput.name = 'args';
+      argsInput.value = genericArgsInput.value;
+      form.appendChild(argsInput);
+    }
+    
+    // Add environment
+    var envInput = document.createElement('input');
+    envInput.type = 'hidden';
+    envInput.name = 'environment';
+    envInput.value = document.getElementById('task-environment').value;
+    form.appendChild(envInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+  });
+  
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>

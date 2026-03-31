@@ -49,8 +49,56 @@ class RakeTaskTest < ActiveSupport::TestCase
     assert_equal task.id, RakeUi::RakeTask.to_safe_identifier(task.name)
   end
 
+  test "has_arguments? returns true for tasks with arguments" do
+    task = get_double_nested_task
+
+    assert task.has_arguments?
+  end
+
+  test "has_arguments? returns false for tasks without arguments" do
+    task = get_regular_task
+
+    assert_not task.has_arguments?
+  end
+
+  test "argument_names returns array of argument names" do
+    task = get_double_nested_task
+
+    assert_equal ["user_id"], task.argument_names
+  end
+
+  test "argument_names returns correct names for multiple arguments" do
+    task = get_task_with_multiple_args
+
+    assert_equal ["user_id", "foo_id"], task.argument_names
+  end
+
+  test "argument_count returns correct count" do
+    task = get_double_nested_task
+
+    assert_equal 1, task.argument_count
+  end
+
+  test "argument_count returns 0 for tasks without arguments" do
+    task = get_regular_task
+
+    assert_equal 0, task.argument_count
+  end
+
   def get_double_nested_task
     id = RakeUi::RakeTask.to_safe_identifier("double_nested:inside_double_nested:double_nested_task")
+
+    RakeUi::RakeTask.find_by_id(id)
+  end
+
+  def get_regular_task
+    id = RakeUi::RakeTask.to_safe_identifier("regular")
+
+    RakeUi::RakeTask.find_by_id(id)
+  end
+
+  def get_task_with_multiple_args
+    id = RakeUi::RakeTask.to_safe_identifier("double_nested:inside_double_nested:something_esle:double_nested_taskdouble_nested_taskdouble_nested_task")
 
     RakeUi::RakeTask.find_by_id(id)
   end

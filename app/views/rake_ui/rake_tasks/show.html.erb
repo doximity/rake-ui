@@ -1,43 +1,116 @@
-<div class="row">
-  <div class="section">
-    <h2>Submit Rake Task</h2>
-    <h4>Task: <%= @rake_task.name_with_args %></h4>
-
-    <% if @rake_task.full_comment %>
-      <p>Comments: <%= @rake_task.full_comment %></p>
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Execute Task</h1>
+      <p class="text-sm text-muted-foreground mt-1">Configure and run rake task</p>
+    </div>
+    <%= link_to rake_tasks_path, class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-4 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground" do %>
+      <i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>
+      Back to Tasks
     <% end %>
+  </div>
 
-    <hr />
+  <!-- Task Info Card -->
+  <div class="rounded-lg border border-border bg-card shadow-sm p-4">
+    <div class="flex items-start gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <i data-lucide="terminal" class="h-5 w-5 text-primary"></i>
+      </div>
+      <div class="flex-1 space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Task</p>
+        <p class="font-mono text-sm font-semibold"><%= @rake_task.name_with_args %></p>
+        <% if @rake_task.full_comment %>
+          <p class="text-sm text-muted-foreground pt-2"><%= @rake_task.full_comment %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
 
-    <p data-rake-form-error style="color: red">
+  <!-- Form Card -->
+  <div class="rounded-lg border border-border bg-card shadow-sm">
+    <div class="border-b border-border bg-muted/50 px-4 py-3">
+      <h3 class="font-semibold">Task Configuration</h3>
+    </div>
+    <div class="p-4">
+      <!-- Error Alert -->
+      <div data-rake-form-error class="hidden mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      </div>
 
-    </p>
+      <%= form_with url: rake_task_execute_path(@rake_task.id), method: :post, data: {"rake-form": true}, class: "space-y-4" do |f| %>
+        <!-- Arguments Field -->
+        <% if @rake_task.has_arguments? %>
+          <!-- Individual Argument Fields -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium">Task Arguments</label>
+              <span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                <%= @rake_task.argument_count %> required
+              </span>
+            </div>
+            <% @rake_task.argument_names.each_with_index do |arg_name, index| %>
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  <%= arg_name.titleize %>
+                </label>
+                <%= f.text_field "arg_#{index}",
+                  placeholder: "Enter #{arg_name}",
+                  data: { "rake-form-input-arg": index },
+                  class: "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <!-- Generic Arguments Field (for tasks without defined arguments) -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Rake Arguments
+            </label>
+            <%= f.text_field :args, 
+              placeholder: "e.g., 1,2,3 (no brackets or spaces)", 
+              data: { "rake-form-input-args": true },
+              class: "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" %>
+            <p class="text-xs text-muted-foreground">Comma-separated values without brackets</p>
+          </div>
+        <% end %>
 
-    <%= form_with url: rake_task_execute_path(@rake_task.id), method: :post, class: 'full-width-forms', data: {"rake-form": true} do |f| %>
-      <label>
-        Rake Arguments
-        <%= f.text_field :args, placeholder: "with no brackets, eg: 1,2,3", data: { "rake-form-input-args": true } %>
-      </label>
+        <!-- Environment Field -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Environment Variables
+          </label>
+          <%= f.text_field :environment, 
+            placeholder: "e.g., FOO=bar BAZ=biz", 
+            data: { "rake-form-input-environment": true },
+            class: "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" %>
+          <p class="text-xs text-muted-foreground">Space-separated key=value pairs</p>
+        </div>
 
-      <br />
+        <!-- Validation Checkbox -->
+        <div class="flex items-center space-x-2">
+          <input 
+            type="checkbox" 
+            data-rake-form-input-skip-validations="true"
+            id="skip-validations"
+            class="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          />
+          <label for="skip-validations" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Skip argument and environment validations
+          </label>
+        </div>
 
-      <label>
-        Environment Variables Overrides
-        <%= f.text_field :environment, placeholder: "eg: FOO=bar BAZ=biz", data: { "rake-form-input-environment": true }  %>
-      </label>
-
-      <p>
-        Skip Argument and Environment Validations: <input type="checkbox" data-rake-form-input-skip-validations="true" />
-      </p>
-
-      <%= f.submit "Submit", class: "btn solid blue" %>
-    <% end %>
+        <!-- Submit Button -->
+        <div class="flex gap-3 pt-2">
+          <%= f.submit "Execute Task", class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-6 bg-primary text-primary-foreground shadow hover:bg-primary/90" %>
+          <%= link_to "Cancel", rake_tasks_path, class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-4 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
 
 <script type="application/javascript">
   var _rakeForm = document.querySelector("[data-rake-form]");
-
   var _skipValidationInput = document.querySelector("[data-rake-form-input-skip-validations]")
   var _environmentInput = document.querySelector("[data-rake-form-input-environment]")
   var _argsInput = document.querySelector("[data-rake-form-input-args]")
@@ -46,17 +119,41 @@
   function _failWithError(event, message) {
     event.preventDefault()
     _formError.innerHTML = message;
+    _formError.classList.remove('hidden');
+    setTimeout(function() {
+      _formError.classList.add('hidden');
+    }, 5000);
   }
 
   _rakeForm.addEventListener("submit", function handleFormSubmit(event) {
+    _formError.classList.add('hidden');
+    
     if (_skipValidationInput.checked) {
       return;
     }
 
-    var argValue = _argsInput.value;
-    if (argValue.includes(" ") || argValue.includes("[") || argValue.includes("]")) {
-      _failWithError(event, "Do not include spaces or brackets in your rake arguments, disable validation if needed")
+    // Validate generic args input if present
+    if (_argsInput) {
+      var argValue = _argsInput.value;
+      if (argValue.includes(" ") || argValue.includes("[") || argValue.includes("]")) {
+        _failWithError(event, "Do not include spaces or brackets in your rake arguments, disable validation if needed")
+        return;
+      }
+    }
+
+    // Validate individual argument fields
+    var individualArgInputs = document.querySelectorAll("[data-rake-form-input-arg]");
+    for (var i = 0; i < individualArgInputs.length; i++) {
+      var input = individualArgInputs[i];
+      if (!input.value || input.value.trim() === '') {
+        _failWithError(event, "All arguments are required. Please fill in all fields or skip validation.")
+        return;
+      }
     }
   })
 
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 </script>

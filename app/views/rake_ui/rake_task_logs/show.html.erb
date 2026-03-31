@@ -1,42 +1,90 @@
-<div class="row">
-  <div class="section">
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Task Log</h1>
+      <p class="text-sm text-muted-foreground mt-1">Real-time execution output</p>
+    </div>
+    <%= link_to rake_task_logs_path, class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-9 px-4 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground" do %>
+      <i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>
+      Back to Logs
+    <% end %>
+  </div>
 
-    <h1>Rake Task Log</h1>
+  <!-- Task Info Card -->
+  <div class="rounded-lg border border-border bg-card shadow-sm p-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="space-y-1">
+        <p class="text-xs font-medium text-muted-foreground">Task Name</p>
+        <p class="text-sm font-mono"><%= @rake_task_log.name %></p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-xs font-medium text-muted-foreground">Executed By</p>
+        <% if @rake_task_log.executed_by.present? %>
+          <div class="flex items-center gap-1.5 text-sm">
+            <i data-lucide="user" class="h-3.5 w-3.5 text-muted-foreground"></i>
+            <%= @rake_task_log.executed_by %>
+          </div>
+        <% else %>
+          <p class="text-sm text-muted-foreground italic">Unknown</p>
+        <% end %>
+      </div>
+      <div class="space-y-1">
+        <p class="text-xs font-medium text-muted-foreground">Date</p>
+        <p class="text-sm"><%= @rake_task_log.date %></p>
+      </div>
+    </div>
+  </div>
 
-    <hr />
-
-    <div id="log_content" class="overflow-y: scroll">
+  <!-- Log Output Card -->
+  <div class="rounded-lg border border-border bg-card shadow-sm">
+    <div class="border-b border-border bg-muted/50 px-4 py-3">
+      <div class="flex items-center gap-2">
+        <div class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+        <span class="text-sm font-medium">Live Output</span>
+      </div>
+    </div>
+    <div 
+      id="log_content" 
+      class="p-4 overflow-auto max-h-[calc(100vh-300px)] font-mono text-sm bg-slate-950 text-slate-50 rounded-b-lg"
+      style="white-space: pre-wrap; word-wrap: break-word;"
+    >
       <%= @rake_task_log_content.html_safe %>
     </div>
-
-    <script type="application/javascript">
-    var interval;
-    var content_url = "<%= @rake_task_log_content_url %>"
-    var is_requesting = false
-
-    function replaceContent(content) {
-      document.getElementById('log_content').innerHTML = content
-    }
-
-    interval = setInterval(function () {
-      if (is_requesting) { return }
-      is_requesting = true;
-      fetch(content_url)
-        .then(function(r) { return r.json() })
-        .then(function (r) {
-          replaceContent(r.rake_task_log_content)
-
-          if (r.is_rake_task_log_finished) {
-            clearInterval(interval)
-          }
-          is_requesting = false
-        })
-        .catch(function(err) {
-          is_requesting = false
-          clearInterval(interval)
-          throw(err)
-        })
-    }, 500)
-  </script>
   </div>
 </div>
+
+<script type="application/javascript">
+  var interval;
+  var content_url = "<%= @rake_task_log_content_url %>"
+  var is_requesting = false
+
+  function replaceContent(content) {
+    document.getElementById('log_content').innerHTML = content
+  }
+
+  interval = setInterval(function () {
+    if (is_requesting) { return }
+    is_requesting = true;
+    fetch(content_url)
+      .then(function(r) { return r.json() })
+      .then(function (r) {
+        replaceContent(r.rake_task_log_content)
+
+        if (r.is_rake_task_log_finished) {
+          clearInterval(interval)
+        }
+        is_requesting = false
+      })
+      .catch(function(err) {
+        is_requesting = false
+        clearInterval(interval)
+        throw(err)
+      })
+  }, 500)
+
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>

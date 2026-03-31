@@ -1,31 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full">
 <head>
-  <title>Rake ui</title>
+  <title>Rake UI</title>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
-  <link rel="stylesheet" href="https://cdn.rawgit.com/doximity/vital/v2.2.1/dist/css/vital.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(var(--primary))",
+              foreground: "hsl(var(--primary-foreground))",
+            },
+            secondary: {
+              DEFAULT: "hsl(var(--secondary))",
+              foreground: "hsl(var(--secondary-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+        },
+      },
+    }
+  </script>
+  <%= stylesheet_link_tag "rake_ui/application", media: "all" %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
 </head>
-<body>
-
-  <!-- Nav Menu -->
-  <div class="row header">
-    <div class="section">
-      <nav>
-        <ul class="menu">
-          <li><%= link_to "Logs", rake_task_logs_path %></li>
-          <li><%= link_to "Rake Tasks", rake_tasks_path %></li>
-        </ul>
-      </nav>
+<body class="h-full bg-background text-foreground antialiased">
+  <!-- Header with Navigation -->
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div class="container flex h-14 max-w-screen-2xl items-center px-4 sm:px-8">
+      <div class="mr-4 flex">
+        <a href="<%= rake_tasks_path %>" class="mr-6 flex items-center space-x-2">
+          <span class="font-bold text-lg">Rake UI</span>
+        </a>
+        <nav class="flex items-center gap-6 text-sm">
+          <%= link_to "Tasks", rake_tasks_path, class: "transition-colors hover:text-foreground/80 text-foreground font-medium" %>
+          <%= link_to "Logs", rake_task_logs_path, class: "transition-colors hover:text-foreground/80 text-foreground/60 font-medium" %>
+        </nav>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <p id="notice"><%= notice %></p>
+  <!-- Notice Alert -->
+  <% if notice.present? %>
+    <div class="container max-w-screen-2xl px-4 sm:px-8 mt-4">
+      <div class="relative rounded-lg border border-border bg-card px-4 py-3 text-sm text-card-foreground shadow-sm">
+        <div class="flex items-start gap-3">
+          <i data-lucide="info" class="h-5 w-5 text-primary mt-0.5"></i>
+          <div class="flex-1">
+            <%= notice %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
-  <!-- End Nav Menu -->
-  <div class="contents">
+  <!-- Main Content -->
+  <main class="container max-w-screen-2xl px-4 sm:px-8 py-6">
     <%= yield %>
-  </div>
+  </main>
 </body>
 </html>

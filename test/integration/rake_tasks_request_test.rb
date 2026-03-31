@@ -39,7 +39,7 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
     def mock_task.id
       "some_identifier"
     end
-    mock_task.expect(:call, OpenStruct.new(id: "1234_path"), {args: "1,2,3", environment: "FOO=bar"})
+    mock_task.expect(:call, OpenStruct.new(id: "1234_path"), [], args: "1,2,3", environment: "FOO=bar", executed_by: nil)
 
     mock_find_by_id = lambda do |args|
       assert args, "some_identifier"
@@ -50,6 +50,28 @@ class RakeTasksRequestTest < ActionDispatch::IntegrationTest
     RakeUi::RakeTask.stub :find_by_id, mock_find_by_id do
       post "/rake-ui/rake_tasks/#{mock_task.id}/execute", params: {environment: "FOO=bar",
                                                                    args: "1,2,3"}
+
+      assert_redirected_to "/rake-ui/rake_task_logs/1234_path"
+    end
+  end
+
+  test "post executes the task with individual arguments" do
+    mock_task = Minitest::Mock.new
+    def mock_task.id
+      "some_identifier"
+    end
+    mock_task.expect(:call, OpenStruct.new(id: "1234_path"), [], args: "123,456", environment: "FOO=bar", executed_by: nil)
+
+    mock_find_by_id = lambda do |args|
+      assert args, "some_identifier"
+
+      mock_task
+    end
+
+    RakeUi::RakeTask.stub :find_by_id, mock_find_by_id do
+      post "/rake-ui/rake_tasks/#{mock_task.id}/execute", params: {environment: "FOO=bar",
+                                                                   arg_0: "123",
+                                                                   arg_1: "456"}
 
       assert_redirected_to "/rake-ui/rake_task_logs/1234_path"
     end

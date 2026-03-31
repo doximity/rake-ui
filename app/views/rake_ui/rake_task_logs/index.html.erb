@@ -1,34 +1,67 @@
-<div class="row">
-  <div class="section">
-    <h1>Status</h1>
-
-    <hr >
-
-    <div class="section">
-      <p>
-        Filter Table <input data-table-filter placeholder="Enter Text" />
-      </p>
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Task Logs</h1>
+      <p class="text-sm text-muted-foreground mt-1">View execution history and logs</p>
     </div>
+  </div>
 
-    <table>
-      <thead>
-      <tr>
-        <th>Actions</th>
-        <th>Date Ran</th>
-        <th>Rake Task</th>
-      </tr>
-      </thead>
+  <!-- Filter -->
+  <div class="flex items-center gap-2">
+    <div class="relative flex-1 max-w-sm">
+      <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"></i>
+      <input 
+        data-table-filter 
+        placeholder="Filter tasks..." 
+        class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      />
+    </div>
+  </div>
 
-      <tbody>
-      <% @rake_task_logs.each do |rake_task_log| %>
-        <tr data-table-filterable="<%= rake_task_log.name %>">
-          <td><%= link_to "View Logs", rake_task_log_path(rake_task_log.id), { class: 'btn' } %></td>
-          <td><%= rake_task_log.date %></td>
-          <td><%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id) %></td>
-        </tr>
-      <% end %>
-      </tbody>
-    </table>
+  <!-- Table Card -->
+  <div class="rounded-lg border border-border bg-card shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-border bg-muted/50">
+          <tr>
+            <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Rake Task</th>
+            <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Executed By</th>
+            <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Date Ran</th>
+            <th class="h-10 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-border">
+          <% @rake_task_logs.each do |rake_task_log| %>
+            <tr data-table-filterable="<%= rake_task_log.name %>" class="hover:bg-muted/50 transition-colors">
+              <td class="px-4 py-3 align-middle">
+                <%= link_to rake_task_log.name, rake_task_log_path(rake_task_log.id), class: "font-medium text-foreground hover:underline" %>
+              </td>
+              <td class="px-4 py-3 align-middle text-muted-foreground">
+                <% if rake_task_log.executed_by.present? %>
+                  <div class="flex items-center gap-1.5">
+                    <i data-lucide="user" class="h-3.5 w-3.5"></i>
+                    <%= rake_task_log.executed_by %>
+                  </div>
+                <% else %>
+                  <span class="text-xs italic">Unknown</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 align-middle text-muted-foreground">
+                <%= rake_task_log.date %>
+              </td>
+              <td class="px-4 py-3 align-middle text-right">
+                <%= link_to rake_task_log_path(rake_task_log.id), class: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-8 px-3 bg-primary text-primary-foreground shadow hover:bg-primary/90" do %>
+                  <i data-lucide="eye" class="mr-1.5 h-4 w-4"></i>
+                  View Logs
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

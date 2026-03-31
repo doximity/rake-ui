@@ -2,6 +2,8 @@
 
 module RakeUi
   class RakeTask
+    @@tasks_loaded = false
+
     def self.to_safe_identifier(id)
       CGI.escape(id)
     end
@@ -16,8 +18,28 @@ module RakeUi
         Rake::TaskManager.record_task_metadata = true
       end
 
-      Rails.application.load_tasks
-      Rake::Task.tasks
+      # Only load tasks once to prevent duplicate descriptions
+      unless @@tasks_loaded
+        Rails.application.load_tasks
+        @@tasks_loaded = true
+      end
+
+      if RakeUi.configuration.whitelisted_prefixes.empty?
+        Rake::Task.tasks
+      else
+        Rake::Task.tasks.select do |task|
+          RakeUi.configuration.whitelisted_prefixes.any? do |prefix|
+            task.name.start_with?(prefix)
+          end
+        end
+      end
+    end
+
+    def self.reload
+      # Reset the flag to allow reloading tasks (useful in development)
+      @@tasks_loaded = false
+      Rake::Task.clear
+      load
     end
 
     def self.all
@@ -42,17 +64,29 @@ module RakeUi
     end
 
     attr_reader :task
-    delegate :name, :actions, :name_with_args, :arg_description, :full_comment, :locations, :sources, to: :task
+    delegate :name, :actions, :name_with_args, :arg_description, :arg_names, :full_comment, :locations, :sources, to: :task
 
     def initialize(task)
       @task = task
+    end
+
+    def has_arguments?
+      arg_names&.any?
+    end
+
+    def argument_names
+      return [] unless has_arguments?
+      arg_names.map(&:to_s)
+    end
+
+    def argument_count
+      argument_names.length
     end
 
     def id
       RakeUi::RakeTask.to_safe_identifier(name)
     end
 
-    # actions will be something like #<Proc:0x000055a2737fe778@/some/rails/app/lib/tasks/auto_annotate_models.rake:4>
     def rake_definition_file
       definition = actions.first || ""
 
@@ -69,18 +103,11 @@ module RakeUi
       internal_task?
     end
 
-    # thinking this is the sanest way to discern application vs gem defined tasks (like rails, devise etc)
     def internal_task?
       actions.any? { |a| !a.to_s.include? "/ruby/gems" }
-
-      # this was my initial thought here, leaving for posterity in case we need to or the definition of custom
-      # from initial investigation the actions seemed like the most consistent as locations is sometimes empty
-      # locations.any? do |location|
-      #   !location.match(/\/bundle\/gems/)
-      # end
     end
 
-    def call(args: nil, environment: nil)
+    def call(args: nil, environment: nil, executed_by: nil)
       rake_command = build_rake_command(args: args, environment: environment)
 
       rake_task_log = RakeUi::RakeTaskLog.build_new_for_command(
@@ -89,7 +116,8 @@ module RakeUi
         environment: environment,
         rake_command: rake_command,
         rake_definition_file: rake_definition_file,
-        raker_id: id
+        raker_id: id,
+        executed_by: executed_by
       )
 
       puts "[rake_ui] [rake_task] [forked] #{rake_task_log.rake_command_with_logging}"
@@ -103,10 +131,6 @@ module RakeUi
       rake_task_log
     end
 
-    # returns an invokable rake command
-    # FOO=bar rake create_something[1,2,3]
-    # rake create_something[1,2,3]
-    # rake create_something
     def build_rake_command(args: nil, environment: nil)
       command = ""
 

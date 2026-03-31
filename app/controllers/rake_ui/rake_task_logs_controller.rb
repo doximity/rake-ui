@@ -9,10 +9,13 @@ module RakeUi
       :rake_command,
       :rake_definition_file,
       :log_file_name,
-      :log_file_full_path].freeze
+      :log_file_full_path,
+      :executed_by].freeze
+
+    after_action :cleanup_old_logs_occasionally, only: [:index]
 
     def index
-      @rake_task_logs = RakeUi::RakeTaskLog.all.sort_by(&:id)
+      @rake_task_logs = RakeUi::RakeTaskLog.all
 
       respond_to do |format|
         format.html
@@ -54,6 +57,11 @@ module RakeUi
 
     def rake_task_logs_as_json(tasks = [])
       tasks.map { |task| rake_task_log_as_json(task) }
+    end
+
+    # We want some RNG here, lol :D
+    def cleanup_old_logs_occasionally
+      RakeUi::RakeTaskLog.cleanup_old_logs if rand(100) < 5
     end
   end
 end
