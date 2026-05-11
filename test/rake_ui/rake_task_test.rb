@@ -55,3 +55,28 @@ class RakeTaskTest < ActiveSupport::TestCase
     RakeUi::RakeTask.find_by_id(id)
   end
 end
+
+class RakeTaskDebugLoggingTest < ActiveSupport::TestCase
+  test "call emits public safe lifecycle debug events" do
+    task = RakeUi::RakeTask.find_by_id(RakeUi::RakeTask.to_safe_identifier("regular"))
+    events = []
+    debug = lambda do |event, task_name:, task_log_id: nil|
+      events << {event: event, task_name: task_name, task_log_id: task_log_id}
+    end
+
+    RakeUi::DebugLogger.stub(:debug, debug) do
+      task.stub(:fork_task_execution, 1234) do
+        task.call
+      end
+    end
+
+    assert_equal [
+      "rake_ui.task_execution.requested",
+      "rake_ui.task_log.created",
+      "rake_ui.task_execution.forked"
+    ], events.map { |event| event[:event] }
+    assert events.all? { |event| event[:task_name] == "regular" }
+    assert_nil events.first[:task_log_id]
+    assert events[1..].all? { |event| event[:task_log_id].present? }
+  end
+end

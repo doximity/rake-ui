@@ -52,6 +52,8 @@ module RakeUi
         f.puts TASK_HEADER_OUTPUT_DELIMITER.to_s
       end
 
+      RakeUi::DebugLogger.debug("rake_ui.task_log.created", task_name: name, task_log_id: id)
+
       new(id: id,
         name: name,
         args: args,

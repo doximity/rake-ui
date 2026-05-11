@@ -81,6 +81,7 @@ module RakeUi
     end
 
     def call(args: nil, environment: nil)
+      RakeUi::DebugLogger.debug("rake_ui.task_execution.requested", task_name: name)
       rake_command = build_rake_command(args: args, environment: environment)
 
       rake_task_log = RakeUi::RakeTaskLog.build_new_for_command(
@@ -92,15 +93,21 @@ module RakeUi
         raker_id: id
       )
 
-      puts "[rake_ui] [rake_task] [forked] #{rake_task_log.rake_command_with_logging}"
+      fork_task_execution(rake_task_log)
 
-      fork do
-        system(rake_task_log.rake_command_with_logging)
-
-        system(rake_task_log.command_to_mark_log_finished)
-      end
-
+      RakeUi::DebugLogger.debug("rake_ui.task_execution.forked", task_name: name, task_log_id: rake_task_log.id)
       rake_task_log
+    rescue
+      RakeUi::DebugLogger.debug("rake_ui.task_execution.failed", task_name: name, task_log_id: rake_task_log&.id)
+      raise
+    end
+
+    def fork_task_execution(rake_task_log)
+      Process.fork do
+        system(rake_task_log.rake_command_with_logging)
+        system(rake_task_log.command_to_mark_log_finished)
+        RakeUi::DebugLogger.debug("rake_ui.task_execution.finished_marker_written", task_name: name, task_log_id: rake_task_log.id)
+      end
     end
 
     # returns an invokable rake command
