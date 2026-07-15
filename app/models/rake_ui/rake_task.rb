@@ -126,7 +126,7 @@ module RakeUi
         end
 
         escaped_env = tokens.map do |token|
-          next unless token.match?(/\A[A-Z_][A-Z0-9_]*=.+\z/i)
+          next unless token.match?(/\A[A-Z_][A-Z0-9_]*=.*\z/i)
 
           # Valid KEY=VALUE pattern - escape only the value
           key, value = token.split("=", 2)
