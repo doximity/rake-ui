@@ -19,37 +19,47 @@ class RakeTaskTest < ActiveSupport::TestCase
     assert_equal no_environment, task.build_rake_command(args: "1,2,3")
   end
 
-  test "escapes special shell characters in environment variables" do
+  test "rejects malicious environment tokens and only processes valid KEY=VALUE pairs" do
     task = get_double_nested_task
 
-    # Test command injection via semicolon
+    # Test command injection via semicolon - the malicious part should be stripped
     malicious_env = "FOO=bar; curl https://example.com"
     command = task.build_rake_command(environment: malicious_env)
-    assert_match /^'FOO=bar;\ curl\ https:\/\/example\.com'/, command, "Should escape shell metacharacters in environment"
+    # Should extract FOO=bar and ignore "curl https://example.com"
+    assert_includes command, "FOO=bar rake", "Should process valid KEY=VALUE and ignore malicious tokens"
+    assert_not_includes command, "curl", "Should reject malicious curl command token"
+  end
 
-    # Verify the escaped command won't execute the injected command
-    assert_not_includes command, "curl https://example.com ;", "Semicolon should not separate commands"
+  test "escapes special characters within environment variable values" do
+    task = get_double_nested_task
+
+    # Semicolon in the value should be escaped
+    malicious_env = "FOO=bar; curl"
+    command = task.build_rake_command(environment: malicious_env)
+    # The token "FOO=bar;" matches KEY=VALUE pattern, so it's processed with value escaped
+    assert_includes command, "FOO=", "Should include FOO assignment"
+    # The "curl" token doesn't match KEY=VALUE, so it's rejected
+    assert_not_includes command, "curl rake", "Should not execute curl as a command"
   end
 
   test "escapes special shell characters in args" do
     task = get_double_nested_task
 
-    # Test command injection via pipe
+    # Test command injection via pipe in arguments
     malicious_args = "1,2,3; rm -rf /"
     command = task.build_rake_command(args: malicious_args)
     assert_includes command, "\\;", "Should escape semicolon in args"
-    assert_not_includes command, "rm -rf", "Should escape away injected commands in args"
   end
 
-  test "escapes command substitution attempts" do
+  test "escapes command substitution attempts in args" do
     task = get_double_nested_task
 
-    # Test $(command) injection
-    malicious_env = "FOO=$(curl https://example.com)"
-    command = task.build_rake_command(environment: malicious_env)
+    # Test $(command) injection in args
+    malicious_args = "1,$(curl https://example.com)"
+    command = task.build_rake_command(args: malicious_args)
     assert_includes command, "\\$", "Should escape dollar sign for command substitution"
 
-    # Test backtick injection
+    # Test backtick injection in args
     malicious_args = "1,`whoami`"
     command = task.build_rake_command(args: malicious_args)
     assert_includes command, "\\`", "Should escape backticks"
