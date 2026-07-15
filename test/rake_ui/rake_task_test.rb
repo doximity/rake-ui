@@ -49,6 +49,21 @@ class RakeTaskTest < ActiveSupport::TestCase
     assert_includes command, "rake", "Should include rake command"
   end
 
+  test "does not raise when environment contains an unbalanced quote" do
+    task = get_double_nested_task
+
+    # Shellwords.split raises ArgumentError on unbalanced quotes; this is called
+    # in the request thread before the fork, so an unhandled raise would 500.
+    unbalanced = 'FOO="bar'
+    command = nil
+    assert_nothing_raised do
+      command = task.build_rake_command(environment: unbalanced)
+    end
+
+    # Malformed env is dropped; the rake command is still produced.
+    assert_equal "rake #{task.name}", command
+  end
+
   test "escapes special shell characters in args" do
     task = get_double_nested_task
 
