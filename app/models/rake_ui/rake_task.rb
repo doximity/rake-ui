@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module RakeUi
   class RakeTask
     def self.to_safe_identifier(id)
@@ -111,13 +113,15 @@ module RakeUi
       command = ""
 
       if environment
-        command += "#{environment} "
+        # Escape environment to prevent shell injection
+        command += "#{Shellwords.escape(environment)} "
       end
 
       command += "rake #{name}"
 
       if args
-        command += "[#{args}]"
+        # Escape args to prevent shell injection
+        command += "[#{Shellwords.escape(args)}]"
       end
 
       command

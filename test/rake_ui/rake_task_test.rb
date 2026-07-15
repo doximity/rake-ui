@@ -19,6 +19,42 @@ class RakeTaskTest < ActiveSupport::TestCase
     assert_equal no_environment, task.build_rake_command(args: "1,2,3")
   end
 
+  test "escapes special shell characters in environment variables" do
+    task = get_double_nested_task
+
+    # Test command injection via semicolon
+    malicious_env = "FOO=bar; curl https://example.com"
+    command = task.build_rake_command(environment: malicious_env)
+    assert_match /^'FOO=bar;\ curl\ https:\/\/example\.com'/, command, "Should escape shell metacharacters in environment"
+
+    # Verify the escaped command won't execute the injected command
+    assert_not_includes command, "curl https://example.com ;", "Semicolon should not separate commands"
+  end
+
+  test "escapes special shell characters in args" do
+    task = get_double_nested_task
+
+    # Test command injection via pipe
+    malicious_args = "1,2,3; rm -rf /"
+    command = task.build_rake_command(args: malicious_args)
+    assert_includes command, "\\;", "Should escape semicolon in args"
+    assert_not_includes command, "rm -rf", "Should escape away injected commands in args"
+  end
+
+  test "escapes command substitution attempts" do
+    task = get_double_nested_task
+
+    # Test $(command) injection
+    malicious_env = "FOO=$(curl https://example.com)"
+    command = task.build_rake_command(environment: malicious_env)
+    assert_includes command, "\\$", "Should escape dollar sign for command substitution"
+
+    # Test backtick injection
+    malicious_args = "1,`whoami`"
+    command = task.build_rake_command(args: malicious_args)
+    assert_includes command, "\\`", "Should escape backticks"
+  end
+
   test "scrubs rake_definition_file to be html safe" do
     task = get_double_nested_task
 
