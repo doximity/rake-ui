@@ -116,14 +116,11 @@ module RakeUi
         # Safely escape environment variables to prevent shell injection
         # Only accept KEY=VALUE pairs; reject malicious tokens
         escaped_env = Shellwords.split(environment).map do |token|
-          if token.match?(/\A[A-Z_][A-Z0-9_]*=.+\z/i)
-            # Valid KEY=VALUE pattern - escape only the value
-            key, value = token.split("=", 2)
-            "#{key}=#{Shellwords.escape(value)}"
-          else
-            # Invalid format (possible injection attempt) - skip this token
-            nil
-          end
+          next unless token.match?(/\A[A-Z_][A-Z0-9_]*=.+\z/i)
+
+          # Valid KEY=VALUE pattern - escape only the value
+          key, value = token.split("=", 2)
+          "#{key}=#{Shellwords.escape(value)}"
         end.compact.join(" ")
 
         command += "#{escaped_env} " if escaped_env.present?
