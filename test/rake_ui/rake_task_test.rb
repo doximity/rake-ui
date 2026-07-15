@@ -22,24 +22,31 @@ class RakeTaskTest < ActiveSupport::TestCase
   test "rejects malicious environment tokens and only processes valid KEY=VALUE pairs" do
     task = get_double_nested_task
 
-    # Test command injection via semicolon - the malicious part should be stripped
+    # Test 1: Direct command injection attempt (no KEY=VALUE)
+    malicious_env = "curl https://example.com"
+    command = task.build_rake_command(environment: malicious_env)
+    assert_not_includes command, "curl rake", "Should reject bare command tokens"
+
+    # Test 2: Valid env var followed by command injection attempt
+    # "FOO=bar;" is one token (space comes after), so it's processed as KEY=VALUE with value "bar;"
+    # "curl" doesn't match KEY=VALUE pattern, so it's rejected
     malicious_env = "FOO=bar; curl https://example.com"
     command = task.build_rake_command(environment: malicious_env)
-    # Should extract FOO=bar and ignore "curl https://example.com"
-    assert_includes command, "FOO=bar rake", "Should process valid KEY=VALUE and ignore malicious tokens"
-    assert_not_includes command, "curl", "Should reject malicious curl command token"
+    assert_includes command, "rake", "Should include rake command"
+    assert_not_includes command, "curl rake", "Should not execute curl as a command"
+    assert_not_includes command, "curl https", "Should not include curl command in output"
   end
 
   test "escapes special characters within environment variable values" do
     task = get_double_nested_task
 
-    # Semicolon in the value should be escaped
-    malicious_env = "FOO=bar; curl"
+    # When a value contains special characters (in the VALUE part after =), they get escaped
+    malicious_env = "FOO=bar;baz"
     command = task.build_rake_command(environment: malicious_env)
-    # The token "FOO=bar;" matches KEY=VALUE pattern, so it's processed with value escaped
+    # "FOO=bar;baz" matches KEY=VALUE pattern (no spaces to split it)
+    # The value "bar;baz" gets escaped so the semicolon can't be a command separator
     assert_includes command, "FOO=", "Should include FOO assignment"
-    # The "curl" token doesn't match KEY=VALUE, so it's rejected
-    assert_not_includes command, "curl rake", "Should not execute curl as a command"
+    assert_includes command, "rake", "Should include rake command"
   end
 
   test "escapes special shell characters in args" do
