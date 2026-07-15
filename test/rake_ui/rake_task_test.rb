@@ -45,7 +45,7 @@ class RakeTaskTest < ActiveSupport::TestCase
     command = task.build_rake_command(environment: malicious_env)
     # "FOO=bar;baz" matches KEY=VALUE pattern (no spaces to split it)
     # The value "bar;baz" gets escaped so the semicolon can't be a command separator
-    assert_includes command, "FOO=", "Should include FOO assignment"
+    assert_includes command, "FOO=bar\\;baz", "Should escape semicolon in env var value"
     assert_includes command, "rake", "Should include rake command"
   end
 
