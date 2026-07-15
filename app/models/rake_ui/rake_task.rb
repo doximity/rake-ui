@@ -118,13 +118,13 @@ module RakeUi
         escaped_env = Shellwords.split(environment).map do |token|
           if token.match?(/\A[A-Z_][A-Z0-9_]*=.+\z/i)
             # Valid KEY=VALUE pattern - escape only the value
-            key, value = token.split('=', 2)
+            key, value = token.split("=", 2)
             "#{key}=#{Shellwords.escape(value)}"
           else
             # Invalid format (possible injection attempt) - skip this token
             nil
           end
-        end.compact.join(' ')
+        end.compact.join(" ")
 
         command += "#{escaped_env} " if escaped_env.present?
       end
