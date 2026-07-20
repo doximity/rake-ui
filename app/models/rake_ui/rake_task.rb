@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module RakeUi
   class RakeTask
     def self.to_safe_identifier(id)
@@ -111,13 +113,34 @@ module RakeUi
       command = ""
 
       if environment
-        command += "#{environment} "
+        # Safely escape environment variables to prevent shell injection
+        # Only accept KEY=VALUE pairs; reject malicious tokens
+        #
+        # Shellwords.split raises ArgumentError on malformed input (e.g. an
+        # unbalanced quote like FOO="bar). Treat that as no usable env tokens
+        # rather than letting the exception bubble up as a 500.
+        tokens = begin
+          Shellwords.split(environment)
+        rescue ArgumentError
+          []
+        end
+
+        escaped_env = tokens.map do |token|
+          next unless token.match?(/\A[A-Z_][A-Z0-9_]*=.*\z/i)
+
+          # Valid KEY=VALUE pattern - escape only the value
+          key, value = token.split("=", 2)
+          "#{key}=#{Shellwords.escape(value)}"
+        end.compact.join(" ")
+
+        command += "#{escaped_env} " if escaped_env.present?
       end
 
       command += "rake #{name}"
 
       if args
-        command += "[#{args}]"
+        # Escape args to prevent shell injection
+        command += "[#{Shellwords.escape(args)}]"
       end
 
       command
