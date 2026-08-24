@@ -2,8 +2,8 @@
 
 module RakeUi
   class RakeTaskLog < OpenStruct
-    # year-month-day-hour(24hour time)-minute-second-utc
-    ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S%z"
+    # year-month-day-hour(24hour time)-minute-second-nanosecond-utc
+    ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S.%N%z"
     REPOSITORY_DIR = Rails.root.join("tmp", "rake_ui")
     FILE_DELIMITER = "____"
     FINISHED_STRING = "+++++ COMMAND FINISHED +++++"

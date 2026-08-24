@@ -27,4 +27,68 @@ class RakeTaskLogTest < ActiveSupport::TestCase
       assert_equal log.date, "2021-02-07-09-34-04-0600"
     end
   end
+
+  test "generates log IDs with sub-second precision" do
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test_task"
+    )
+
+    assert_match(/\A\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.\d+[-+]\d{4}____test_task\z/, log.id)
+  ensure
+    File.delete(log.log_file_full_path) if File.exist?(log.log_file_full_path)
+  end
+
+  test "generates unique log IDs for concurrent executions of the same task" do
+    first_log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test_task"
+    )
+
+    second_log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test_task"
+    )
+
+    refute_equal first_log.id, second_log.id
+    refute_equal first_log.log_file_full_path, second_log.log_file_full_path
+  ensure
+    [first_log, second_log].compact.each do |log|
+      File.delete(log.log_file_full_path) if File.exist?(log.log_file_full_path)
+    end
+  end
+
+  test "does not truncate existing log file when creating a new one" do
+    first_log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test_task"
+    )
+
+    marker = "first run marker #{SecureRandom.hex(8)}"
+    File.open(first_log.log_file_full_path, "a") do |f|
+      f.puts marker
+    end
+
+    second_log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test_task"
+    )
+
+    assert_includes File.read(first_log.log_file_full_path), marker
+    refute_equal first_log.log_file_full_path, second_log.log_file_full_path
+  ensure
+    [first_log, second_log].compact.each do |log|
+      File.delete(log.log_file_full_path) if File.exist?(log.log_file_full_path)
+    end
+  end
 end
