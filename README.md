@@ -51,6 +51,13 @@ RakeUi.configuration do |config|
   config.allow_production = true
 end
 ```
+The `staging` environment will be available by default.  If you determine this is a risk, you can disable that.
+```rb
+RakeUi.configuration do |config|
+  config.allow_staging = false
+end
+```
+
 
 We recommend adding guards in your route to ensure that the proper authentication is in place to ensure that users are authenticated so that if this were ever to be rendered in production, you would be covered.  The best way for that is [router constraints](https://guides.rubyonrails.org/routing.html#specifying-constraints)
 
