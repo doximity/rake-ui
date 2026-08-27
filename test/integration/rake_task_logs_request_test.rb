@@ -34,4 +34,19 @@ class RakeTaskLogsRequestTest < ActionDispatch::IntegrationTest
 
     assert_includes json_response[:rake_task_log_content], log.id
   end
+
+  test "show html escapes malicious content instead of rendering it as raw HTML" do
+    RakeUi::RakeTaskLog.create_tmp_file_dir
+    log_id = "xss_regression_test"
+    log_file_path = RakeUi::RakeTaskLog::REPOSITORY_DIR.join("#{log_id}.txt")
+    File.write(log_file_path, "<script>alert(1)</script>")
+
+    get "/rake-ui/rake_task_logs/#{log_id}"
+
+    assert_equal 200, status
+    refute_includes response.body, "<script>alert(1)</script>"
+    assert_includes response.body, "&lt;script&gt;alert(1)&lt;/script&gt;"
+  ensure
+    File.delete(log_file_path) if log_file_path && File.exist?(log_file_path)
+  end
 end
