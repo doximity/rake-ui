@@ -36,7 +36,7 @@ class RakeTaskLogTest < ActiveSupport::TestCase
       raker_id: "test_task"
     )
 
-    assert_match(/\A\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.\d+[-+]\d{4}____test_task\z/, log.id)
+    assert_match(/\A\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-\d+[-+]\d{4}____test_task\z/, log.id)
   ensure
     File.delete(log.log_file_full_path) if File.exist?(log.log_file_full_path)
   end
