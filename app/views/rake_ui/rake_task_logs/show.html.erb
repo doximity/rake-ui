@@ -5,8 +5,8 @@
 
     <hr />
 
-    <div id="log_content" class="overflow-y: scroll">
-      <%= @rake_task_log_content.html_safe %>
+    <div id="log_content" style="overflow-y: scroll; white-space: pre-wrap;">
+      <%= @rake_task_log_content %>
     </div>
 
     <script type="application/javascript">
@@ -15,7 +15,7 @@
     var is_requesting = false
 
     function replaceContent(content) {
-      document.getElementById('log_content').innerHTML = content
+      document.getElementById('log_content').textContent = content
     }
 
     interval = setInterval(function () {
