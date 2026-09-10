@@ -3,6 +3,7 @@
 module RakeUi
   class ApplicationController < ActionController::Base
     before_action :black_hole_production
+    skip_before_action :verify_authenticity_token
 
     private
 
