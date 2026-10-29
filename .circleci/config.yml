@@ -3,10 +3,15 @@
 version: 2.1
 
 executors:
-  ruby-latest:
+  ruby:
+    parameters:
+      version:
+        type: string
     resource_class: small
     docker:
-      - image: circleci/ruby:2.7.2
+      - image: cimg/ruby:<< parameters.version >>
+        environment:
+          BUNDLE_VERSION: "2.4.3"
 
 # yaml anchor filters
 master_only: &master_only
@@ -30,7 +35,12 @@ version_tags_only: &version_tags_only
 
 jobs:
   build:
-    executor: ruby-latest
+    parameters:
+      ruby_version:
+        type: string
+    executor:
+      name: ruby
+      version: << parameters.ruby_version >>
     steps:
       - checkout
       - run:
@@ -68,13 +78,22 @@ workflows:
     jobs:
       - build:
           <<: *pr_only
+          matrix:
+            parameters:
+              ruby_version: ["3.3", "3.4", "4.0"]
 
   trunk:
     jobs:
       - build:
           <<: *master_only
+          matrix:
+            parameters:
+              ruby_version: ["3.3", "3.4", "4.0"]
 
   final-release:
     jobs:
       - build:
           <<: *version_tags_only
+          matrix:
+            parameters:
+              ruby_version: ["3.3", "3.4", "4.0"]
