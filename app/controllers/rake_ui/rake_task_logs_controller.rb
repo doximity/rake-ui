@@ -27,6 +27,14 @@ module RakeUi
     def show
       @rake_task_log = RakeUi::RakeTaskLog.find_by_id(params[:id])
 
+      unless @rake_task_log
+        respond_to do |format|
+          format.html { head :not_found }
+          format.json { render json: { error: "Rake task log not found" }, status: :not_found }
+        end
+        return
+      end
+
       @rake_task_log_content = @rake_task_log.file_contents
       @rake_task_log_content_url = rake_task_log_path(@rake_task_log.id, format: :json)
       @is_rake_task_log_finished = @rake_task_log.finished?
