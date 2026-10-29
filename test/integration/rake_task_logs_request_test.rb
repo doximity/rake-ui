@@ -35,6 +35,19 @@ class RakeTaskLogsRequestTest < ActionDispatch::IntegrationTest
     assert_includes json_response[:rake_task_log_content], log.id
   end
 
+  test "show json returns 404 for an unknown log" do
+    get "/rake-ui/rake_task_logs/does-not-exist.json"
+
+    assert_equal 404, status
+    assert_equal "Rake task log not found", json_response[:error]
+  end
+
+  test "show html returns 404 for an unknown log" do
+    get "/rake-ui/rake_task_logs/does-not-exist"
+
+    assert_equal 404, status
+  end
+
   test "show html escapes malicious content instead of rendering it as raw HTML" do
     RakeUi::RakeTaskLog.create_tmp_file_dir
     log_id = "xss_regression_test"
