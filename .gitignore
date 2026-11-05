@@ -10,5 +10,6 @@
 /test/dummy/storage/
 /test/dummy/tmp/cache/
 /test/dummy/tmp/development_secret.txt
+/test/dummy/tmp/local_secret.txt
 
 .byebug_history
