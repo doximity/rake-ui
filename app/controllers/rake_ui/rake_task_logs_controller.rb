@@ -30,7 +30,7 @@ module RakeUi
       unless @rake_task_log
         respond_to do |format|
           format.html { head :not_found }
-          format.json { render json: { error: "Rake task log not found" }, status: :not_found }
+          format.json { render json: {error: "Rake task log not found"}, status: :not_found }
         end
         return
       end
