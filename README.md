@@ -54,6 +54,46 @@ end
 
 We recommend adding guards in your route to ensure that the proper authentication is in place to ensure that users are authenticated so that if this were ever to be rendered in production, you would be covered.  The best way for that is [router constraints](https://guides.rubyonrails.org/routing.html#specifying-constraints)
 
+## Debugging
+
+RakeUi emits public-safe structured Rails debug logs for rake task execution lifecycle events. Enable them with the host Rails app's normal debug log configuration, for example:
+
+```bash
+RAILS_LOG_LEVEL=debug
+```
+
+Every RakeUi debug event uses the same set of keys:
+
+| Field | Meaning |
+| --- | --- |
+| `component` | Always `rake-ui`. |
+| `event` | Stable lifecycle event name. |
+| `rails_app` | Host Rails application's module name. |
+| `task_name` | Rake task name. |
+| `task_log_id` | RakeUi task execution log id, or `nil` before one exists. |
+
+RakeUi intentionally does not log command strings, argument values, environment values, authentication data, or application-specific metadata.
+
+| Event | Emitted when | Meaning |
+| --- | --- | --- |
+| `rake_ui.task_execution.requested` | `RakeUi::RakeTask#call` begins. | The host app accepted a request to execute a rake task. `task_log_id` is not available yet. |
+| `rake_ui.task_log.created` | `RakeUi::RakeTaskLog.build_new_for_command` creates the log file. | A durable local execution log file now exists. |
+| `rake_ui.task_execution.forked` | The execution process is forked. | Async task execution has been handed to a child process. |
+| `rake_ui.task_execution.finished_marker_written` | The child process writes the finished marker after command execution. | The rake-ui local log should now indicate completion. |
+| `rake_ui.task_execution.failed` | An observable exception occurs during setup/forking. | Execution setup failed before normal async handoff completed. |
+
+Example:
+
+```json
+{
+  "component": "rake-ui",
+  "event": "rake_ui.task_execution.forked",
+  "rails_app": "MyApp",
+  "task_name": "db:migrate",
+  "task_log_id": "2026-05-11-10-22-33-0400____db%3Amigrate"
+}
+```
+
 ## Testing
 
 `bundle exec rake test`
