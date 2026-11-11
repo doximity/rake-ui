@@ -4,6 +4,10 @@ require "ostruct"
 
 module RakeUi
   class RakeTaskLog < OpenStruct
+    # Raised when the pod serving the request no longer has the log file, for
+    # example when the file was removed between listing and reading it.
+    class MissingLogFile < StandardError; end
+
     # year-month-day-hour(24hour time)-minute-second-nanosecond-utc
     ID_DATE_FORMAT = "%Y-%m-%d-%H-%M-%S-%N%z"
     REPOSITORY_DIR = Rails.root.join("tmp", "rake_ui")
@@ -124,6 +128,8 @@ module RakeUi
 
     def file_contents
       @file_contents ||= File.read(log_file_full_path)
+    rescue Errno::ENOENT
+      raise MissingLogFile, log_file_full_path
     end
 
     def command_to_mark_log_finished
