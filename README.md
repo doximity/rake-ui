@@ -44,7 +44,7 @@ end
 
 This tool is built to enable developer productivity in development.  It exposes rake tasks through a UI.
 
-This tool will currently not work in production because we add a guard in the root controller to respond not found if the environment is development or test. You may override this guard clause with the following configuration.
+This tool will currently not work in production because we add a guard in the root controller to respond not found unless the environment is development or test. You may override this guard clause with the following configuration.
 
 ```rb
 RakeUi.configuration do |config|
