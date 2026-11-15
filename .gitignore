@@ -13,3 +13,5 @@
 /test/dummy/tmp/local_secret.txt
 
 .byebug_history
+
+.DS_Store
