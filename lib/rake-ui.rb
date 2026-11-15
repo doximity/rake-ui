@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rake-ui/engine"
+require "rake-ui/debug_logger"
 
 module RakeUi
   mattr_accessor :allow_production
