@@ -96,14 +96,17 @@ module RakeUi
     end
 
     def self.find_by_id(id)
-      found = all.find do |a|
-        a.id == id || a.id == RakeUi::RakeTask.to_safe_identifier(id)
+      if RakeUi.log_reader
+        log_file_name = "#{id.to_s.delete_suffix(".txt")}.txt"
+        path = repository_dir.join(log_file_name)
+        return build_from_file(log_file_name) if path.basename.to_s == log_file_name && path.exist?
+
+        return build_from_id(id)
       end
 
-      return found if found
-      return build_from_id(id) if RakeUi.log_reader
-
-      nil
+      all.find do |a|
+        a.id == id || a.id == RakeUi::RakeTask.to_safe_identifier(id)
+      end
     end
 
     def self.for(rake_ui_rake_task)
@@ -149,7 +152,7 @@ module RakeUi
     end
 
     def log_source
-      if RakeUi.log_reader.nil?
+      if log_file_full_path.present? || RakeUi.log_reader.nil?
         return {content: file_contents, finished: finished?}
       end
 

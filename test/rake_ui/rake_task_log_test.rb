@@ -144,6 +144,75 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     RakeUi.log_reader = nil
   end
 
+  test "log_source reads a local file instead of the reader when the log is on this pod" do
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test"
+    )
+    reader_called = false
+    RakeUi.log_reader = ->(_log) {
+      reader_called = true
+      {content: "remote", finished: true}
+    }
+
+    source = log.log_source
+
+    refute reader_called, "a locally present log must not consult the reader"
+    assert_includes source[:content], "INVOKED RAKE TASK OUTPUT BELOW"
+    assert_equal false, source[:finished]
+  ensure
+    RakeUi.log_reader = nil
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
+  end
+
+  test "find_by_id does not consult log_list when log_reader is configured" do
+    list_called = false
+    RakeUi.log_list = -> {
+      list_called = true
+      ["remote-id"]
+    }
+    RakeUi.log_reader = ->(_log) { {content: "remote", finished: true} }
+
+    log = RakeUi::RakeTaskLog.find_by_id("remote-id")
+
+    refute list_called, "a configured reader fetches by id, so listing is unnecessary"
+    assert_equal "remote-id", log.id
+    assert_nil log.log_file_full_path
+  ensure
+    RakeUi.log_list = nil
+    RakeUi.log_reader = nil
+  end
+
+  test "find_by_id returns a local log even when log_reader is configured" do
+    local = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test"
+    )
+    RakeUi.log_reader = ->(_log) { {content: "remote", finished: true} }
+
+    found = RakeUi::RakeTaskLog.find_by_id(local.id)
+
+    assert_equal local.log_file_full_path, found.log_file_full_path
+  ensure
+    RakeUi.log_reader = nil
+    File.delete(local.log_file_full_path) if local && File.exist?(local.log_file_full_path)
+  end
+
+  test "find_by_id does not read outside the log directory for a traversal id" do
+    RakeUi.log_reader = ->(_log) { {content: "remote", finished: true} }
+
+    log = RakeUi::RakeTaskLog.find_by_id("../../etc/passwd")
+
+    assert_equal "../../etc/passwd", log.id
+    assert_nil log.log_file_full_path
+  ensure
+    RakeUi.log_reader = nil
+  end
+
   test "rake_command_with_logging merges stderr after redirecting to the escaped log path" do
     path = "/tmp/rake ui/some log.txt"
     log = RakeUi::RakeTaskLog.new(
