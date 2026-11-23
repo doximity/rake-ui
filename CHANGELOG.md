@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5]
+* Return 404 for a missing rake task log instead of raising `NoMethodError`
+  [#59](https://github.com/doximity/rake-ui/pull/59)
+* Rails 8.1 and Ruby 4.0 compatibility
+  [#60](https://github.com/doximity/rake-ui/pull/60)
+* Make the rake task log directory configurable (default `tmp/rake_ui` unchanged)
+* Add optional log source hooks for reading and listing logs outside the local filesystem
+* Capture task stderr in the log and quote log paths
+* Log a warning and return 404 when a log file is missing
+
 ## [0.1.3] 
 * Escape rake task log content instead of rendering raw HTML
   [#58](https://github.com/doximity/rake-ui/pull/58)

@@ -29,9 +29,11 @@ module RakeUi
       return render_log_not_found unless @rake_task_log
 
       begin
-        @rake_task_log_content = @rake_task_log.file_contents
-        @is_rake_task_log_finished = @rake_task_log.finished?
+        source = @rake_task_log.log_source
+        @rake_task_log_content = source[:content]
+        @is_rake_task_log_finished = source[:finished]
       rescue RakeUi::RakeTaskLog::MissingLogFile
+        Rails.logger.warn("[rake_ui] rake task log not found id=#{params[:id].to_s.inspect}")
         return render_log_not_found
       end
 

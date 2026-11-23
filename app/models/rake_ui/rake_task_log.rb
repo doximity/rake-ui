@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ostruct"
+require "shellwords"
 
 module RakeUi
   class RakeTaskLog < OpenStruct
@@ -16,12 +17,20 @@ module RakeUi
     TASK_HEADER_OUTPUT_DELIMITER = "-------------------------------"
     FILE_ITEM_SEPARATOR = ": "
 
+    def self.repository_dir
+      if RakeUi.log_directory.present?
+        Pathname.new(RakeUi.log_directory.to_s)
+      else
+        REPOSITORY_DIR
+      end
+    end
+
     def self.create_tmp_file_dir
-      FileUtils.mkdir_p(REPOSITORY_DIR.to_s)
+      FileUtils.mkdir_p(repository_dir.to_s)
     end
 
     def self.truncate
-      FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + "/*"))
+      FileUtils.rm_rf(Dir.glob(repository_dir.to_s + "/*"))
     end
 
     def self.build_from_file(log_file_name)
@@ -30,7 +39,7 @@ module RakeUi
       new(
         id: log_file_name.gsub(".txt", ""),
         log_file_name: log_file_name,
-        log_file_full_path: Rails.root.join(REPOSITORY_DIR, log_file_name).to_s
+        log_file_full_path: repository_dir.join(log_file_name).to_s
       )
     end
 
@@ -40,7 +49,7 @@ module RakeUi
       date = Time.now.strftime(ID_DATE_FORMAT)
       id = "#{date}#{FILE_DELIMITER}#{raker_id}"
       log_file_name = "#{id}.txt"
-      log_file_full_path = REPOSITORY_DIR.join(log_file_name).to_s
+      log_file_full_path = repository_dir.join(log_file_name).to_s
 
       File.open(log_file_full_path, "w+") do |f|
         f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
@@ -71,17 +80,30 @@ module RakeUi
     def self.all
       create_tmp_file_dir
 
-      Dir.entries(REPOSITORY_DIR).reject { |file|
+      local = Dir.entries(repository_dir).reject { |file|
         file == "." || file == ".."
       }.map do |log|
         RakeUi::RakeTaskLog.build_from_file(log)
       end
+
+      remote = Array(RakeUi.log_list&.call).map { |id| build_from_id(id) }
+      (local + remote).uniq(&:id)
+    end
+
+    def self.build_from_id(id)
+      id = id.to_s.delete_suffix(".txt")
+      new(id: id, log_file_name: "#{id}.txt")
     end
 
     def self.find_by_id(id)
-      all.find do |a|
+      found = all.find do |a|
         a.id == id || a.id == RakeUi::RakeTask.to_safe_identifier(id)
       end
+
+      return found if found
+      return build_from_id(id) if RakeUi.log_reader
+
+      nil
     end
 
     def self.for(rake_ui_rake_task)
@@ -123,17 +145,31 @@ module RakeUi
     end
 
     def rake_command_with_logging
-      "#{rake_command} 2>&1 >> #{log_file_full_path}"
+      "#{rake_command} >> #{Shellwords.escape(log_file_full_path)} 2>&1"
+    end
+
+    def log_source
+      if RakeUi.log_reader.nil?
+        return {content: file_contents, finished: finished?}
+      end
+
+      result = RakeUi.log_reader.call(self)
+      raise MissingLogFile, id unless result
+
+      {content: result[:content].to_s, finished: !!result[:finished]}
     end
 
     def file_contents
-      @file_contents ||= File.read(log_file_full_path)
+      path = log_file_full_path
+      raise MissingLogFile, id if path.blank?
+
+      @file_contents ||= File.read(path)
     rescue Errno::ENOENT
-      raise MissingLogFile, log_file_full_path
+      raise MissingLogFile, path
     end
 
     def command_to_mark_log_finished
-      "echo #{FINISHED_STRING} >> #{log_file_full_path}"
+      "echo #{Shellwords.escape(FINISHED_STRING)} >> #{Shellwords.escape(log_file_full_path)}"
     end
 
     def finished?
@@ -147,7 +183,7 @@ module RakeUi
       @parsed_log_file_name ||= {}.tap do |parsed|
         date, name = id.split(FILE_DELIMITER, 2)
         parsed[:date] = date
-        parsed[:name] = RakeUi::RakeTask.from_safe_identifier(name)
+        parsed[:name] = name && RakeUi::RakeTask.from_safe_identifier(name)
       end
     end
 
@@ -161,14 +197,19 @@ module RakeUi
     def parsed_file_contents
       return @parsed_file_contents if defined? @parsed_file_contents
 
+      path = self[:log_file_full_path]
+      return @parsed_file_contents = {}.with_indifferent_access if path.blank?
+
       @parsed_file_contents = {}.tap do |parsed|
-        File.foreach(log_file_full_path).first(9).each do |line|
+        File.foreach(path).first(9).each do |line|
           name, value = line.split(FILE_ITEM_SEPARATOR, 2)
           next unless name
 
           parsed[name] = value && value.delete("\n")
         end
       end.with_indifferent_access
+    rescue Errno::ENOENT
+      @parsed_file_contents = {}.with_indifferent_access
     end
   end
 end
