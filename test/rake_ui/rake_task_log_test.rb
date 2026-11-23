@@ -77,6 +77,20 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_equal Rails.root.join("tmp", "rake_ui", name).to_s, log.log_file_full_path
   end
 
+  test "repository_dir treats blank values as unset and accepts a Pathname" do
+    default_dir = RakeUi::RakeTaskLog::REPOSITORY_DIR
+
+    [nil, "", "   ", false].each do |blank|
+      RakeUi.log_directory = blank
+      assert_equal default_dir, RakeUi::RakeTaskLog.repository_dir
+    end
+
+    RakeUi.log_directory = Pathname.new("/tmp/rake_ui_configured")
+    assert_equal Pathname.new("/tmp/rake_ui_configured"), RakeUi::RakeTaskLog.repository_dir
+  ensure
+    RakeUi.log_directory = nil
+  end
+
   test "repository_dir uses the configured log_directory and leaves the default directory alone" do
     default_dir = RakeUi::RakeTaskLog::REPOSITORY_DIR
     default_entries_before = Dir.children(default_dir).sort
