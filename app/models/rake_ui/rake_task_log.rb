@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ostruct"
+require "open3"
 require "shellwords"
 
 module RakeUi
@@ -30,7 +31,9 @@ module RakeUi
     end
 
     def self.truncate
-      FileUtils.rm_rf(Dir.glob(repository_dir.to_s + "/*"))
+      return if repository_dir.root?
+
+      FileUtils.rm_rf(repository_dir.children)
     end
 
     def self.build_from_file(log_file_name)
@@ -86,8 +89,15 @@ module RakeUi
         RakeUi::RakeTaskLog.build_from_file(log)
       end
 
-      remote = Array(RakeUi.log_list&.call).map { |id| build_from_id(id) }
+      remote = log_list_ids.map { |id| build_from_id(id) }
       (local + remote).uniq(&:id)
+    end
+
+    def self.log_list_ids
+      Array(RakeUi.log_list&.call)
+    rescue => e
+      Rails.logger&.warn("[rake_ui] log list failed error=#{e.class}: #{e.message.to_s[0, 200]}")
+      []
     end
 
     def self.build_from_id(id)
@@ -98,8 +108,13 @@ module RakeUi
     def self.find_by_id(id)
       if RakeUi.log_reader
         log_file_name = "#{id.to_s.delete_suffix(".txt")}.txt"
-        path = repository_dir.join(log_file_name)
-        return build_from_file(log_file_name) if path.basename.to_s == log_file_name && path.exist?
+        local_path = begin
+          path = repository_dir.join(log_file_name)
+          build_from_file(log_file_name) if path.basename.to_s == log_file_name && path.exist?
+        rescue ArgumentError, SystemCallError
+          nil
+        end
+        return local_path if local_path
 
         return build_from_id(id)
       end
@@ -156,10 +171,49 @@ module RakeUi
         return {content: file_contents, finished: finished?}
       end
 
-      result = RakeUi.log_reader.call(self)
-      raise MissingLogFile, id unless result
+      result = begin
+        RakeUi.log_reader.call(self)
+      rescue => e
+        Rails.logger&.warn("[rake_ui] log reader failed id=#{id.to_s.inspect} error=#{e.class}: #{e.message.to_s[0, 200]}")
+        nil
+      end
+      raise MissingLogFile, id unless result.is_a?(Hash)
 
       {content: result[:content].to_s, finished: !!result[:finished]}
+    end
+
+    def run_with_log_writer(writer)
+      publish_log_event(writer, :start)
+
+      status = nil
+      last_line = nil
+
+      File.open(log_file_full_path, "a") do |file|
+        Open3.popen2e(rake_command) do |stdin, stdout_and_stderr, wait_thread|
+          stdin.close
+
+          stdout_and_stderr.each_line do |line|
+            last_line = line
+            file.write(line)
+            file.flush
+            publish_log_event(writer, :progress, line)
+          end
+
+          status = wait_thread.value
+        end
+      ensure
+        file.write("\n") if last_line && !last_line.end_with?("\n")
+        file.puts FINISHED_STRING
+        file.flush
+      end
+
+      if status&.success?
+        publish_log_event(writer, :finished)
+      else
+        publish_log_event(writer, :error, status ? status.to_s : "command failed")
+      end
+    rescue => e
+      publish_log_event(writer, :error, e.message)
     end
 
     def file_contents
@@ -176,10 +230,17 @@ module RakeUi
     end
 
     def finished?
-      file_contents.include? FINISHED_STRING
+      file_contents.b.include? FINISHED_STRING.b
     end
 
     private
+
+    # A failing writer must not abort the task.
+    def publish_log_event(writer, event, payload = nil)
+      writer.call(self, event, payload)
+    rescue => e
+      Rails.logger&.warn("[rake_ui] log writer failed event=#{event} error=#{e.class}: #{e.message.to_s[0, 200]}")
+    end
 
     # converts standard formatted file id into an object
     def parsed_log_file_name

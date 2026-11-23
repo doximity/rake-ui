@@ -144,6 +144,26 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     RakeUi.log_reader = nil
   end
 
+  test "log_source raises MissingLogFile when log_reader fails" do
+    log = RakeUi::RakeTaskLog.build_from_id("some-id")
+    RakeUi.log_reader = ->(_log) { raise "reader down" }
+
+    assert_raises(RakeUi::RakeTaskLog::MissingLogFile) { log.log_source }
+  ensure
+    RakeUi.log_reader = nil
+  end
+
+  test "find_by_id tolerates a malformed id when a reader is configured" do
+    RakeUi.log_reader = ->(_log) { {content: "remote", finished: true} }
+
+    log = RakeUi::RakeTaskLog.find_by_id("bad\u0000id")
+
+    assert_equal "bad\u0000id", log.id
+    assert_nil log.log_file_full_path
+  ensure
+    RakeUi.log_reader = nil
+  end
+
   test "log_source reads a local file instead of the reader when the log is on this pod" do
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
@@ -234,6 +254,166 @@ class RakeTaskLogTest < ActiveSupport::TestCase
 
     assert_nil log.args
     assert_nil log.environment
+  end
+
+  test "run_with_log_writer streams output to the file and the writer" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "echo hello-from-writer",
+      raker_id: "test"
+    )
+
+    events = []
+    writer = ->(_log, event, payload = nil) { events << [event, payload] }
+
+    log.run_with_log_writer(writer)
+
+    contents = File.read(log.log_file_full_path)
+    assert_includes contents, "hello-from-writer"
+    assert_includes contents, RakeUi::RakeTaskLog::FINISHED_STRING
+    assert_equal :start, events.first.first
+    assert_equal :finished, events.last.first
+    assert_equal 1, events.count { |event, _payload| [:finished, :error].include?(event) }
+    assert(events.any? { |event, payload| event == :progress && payload.include?("hello-from-writer") })
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "run_with_log_writer does not raise or stop the file write when the writer fails" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "echo still-writes-the-file",
+      raker_id: "test"
+    )
+
+    writer = ->(_log, _event, _payload = nil) { raise "writer exploded" }
+
+    assert_nothing_raised { log.run_with_log_writer(writer) }
+    assert_includes File.read(log.log_file_full_path), "still-writes-the-file"
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "run_with_log_writer reports :error for a failed command" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "exit 3",
+      raker_id: "test"
+    )
+
+    events = []
+    writer = ->(_log, event, payload = nil) { events << [event, payload] }
+
+    log.run_with_log_writer(writer)
+
+    assert_equal :error, events.last.first
+    assert_includes events.last.last, "exit 3"
+    assert_includes File.read(log.log_file_full_path), RakeUi::RakeTaskLog::FINISHED_STRING
+    assert log.finished?
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "run_with_log_writer puts the finish marker on its own line" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "printf no-newline",
+      raker_id: "test"
+    )
+
+    log.run_with_log_writer(->(_log, _event, _payload = nil) {})
+
+    contents = File.read(log.log_file_full_path)
+    assert_includes contents, "no-newline\n#{RakeUi::RakeTaskLog::FINISHED_STRING}"
+    refute_includes contents, "no-newline#{RakeUi::RakeTaskLog::FINISHED_STRING}"
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "run_with_log_writer handles empty output" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "true",
+      raker_id: "test"
+    )
+
+    events = []
+    log.run_with_log_writer(->(_log, event, _payload = nil) { events << event })
+
+    assert_equal [:start, :finished], events
+    assert log.finished?
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "finished? tolerates invalid UTF-8 output" do
+    tmpdir = Dir.mktmpdir("rake_ui_logs")
+    RakeUi.log_directory = tmpdir
+
+    log = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "printf '\\377\\376'",
+      raker_id: "test"
+    )
+
+    log.run_with_log_writer(->(_log, _event, _payload = nil) {})
+
+    assert_nothing_raised { assert log.finished? }
+  ensure
+    RakeUi.log_directory = nil
+    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+  end
+
+  test "log_source raises MissingLogFile when log_reader returns a non-hash" do
+    log = RakeUi::RakeTaskLog.build_from_id("some-id")
+    RakeUi.log_reader = ->(_log) { "not a hash" }
+
+    assert_raises(RakeUi::RakeTaskLog::MissingLogFile) { log.log_source }
+  ensure
+    RakeUi.log_reader = nil
+  end
+
+  test "all ignores a failing log_list" do
+    local = RakeUi::RakeTaskLog.build_new_for_command(
+      name: "test_task",
+      rake_definition_file: "test.rake",
+      rake_command: "rake test_task",
+      raker_id: "test"
+    )
+    RakeUi.log_reader = ->(_log) { {content: "remote", finished: true} }
+    RakeUi.log_list = -> { raise "list down" }
+
+    assert_includes RakeUi::RakeTaskLog.all.map(&:id), local.id
+  ensure
+    RakeUi.log_list = nil
+    RakeUi.log_reader = nil
+    File.delete(local.log_file_full_path) if local && File.exist?(local.log_file_full_path)
   end
 
   test "does not truncate existing log file when creating a new one" do

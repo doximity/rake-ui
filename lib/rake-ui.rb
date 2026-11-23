@@ -9,6 +9,7 @@ module RakeUi
   mattr_accessor :log_directory
   mattr_accessor :log_reader
   mattr_accessor :log_list
+  mattr_accessor :log_writer
 
   def self.configuration
     yield(self) if block_given?

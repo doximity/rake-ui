@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   [#60](https://github.com/doximity/rake-ui/pull/60)
 * Make the rake task log directory configurable (default `tmp/rake_ui` unchanged)
 * Add optional log source hooks for reading and listing logs outside the local filesystem
+* Add an optional `RakeUi.log_writer` hook to stream task logs to shared storage
+* Document the log storage hooks in the README
 * Capture task stderr in the log and quote log paths
 * Log a warning and return 404 when a log file is missing
 

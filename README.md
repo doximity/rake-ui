@@ -54,6 +54,36 @@ end
 
 We recommend adding guards in your route to ensure that the proper authentication is in place to ensure that users are authenticated so that if this were ever to be rendered in production, you would be covered.  The best way for that is [router constraints](https://guides.rubyonrails.org/routing.html#specifying-constraints)
 
+### Log storage callbacks
+
+By default a rake task log is written to `Rails.root/tmp/rake_ui` on the machine
+that ran the task. In a multi-pod deployment another pod may serve the log page
+and not have that file. These optional hooks let you point rake-ui at shared
+storage:
+
+```rb
+RakeUi.configuration do |config|
+  # Publish each log somewhere shared. Called with (log, event, payload) for
+  # :start, :progress, :finished and :error. Progress payloads are output lines.
+  config.log_writer = ->(log, event, payload = nil) { ... }
+
+  # Return {content: "log text", finished: true/false} for a log not on this pod.
+  config.log_reader = ->(log) { ... }
+
+  # Return the ids of logs stored outside this pod, for the index page.
+  config.log_list = -> { ["<log id>", ...] }
+
+  # Write logs to a different local directory.
+  config.log_directory = "/path/to/logs"
+end
+```
+
+All hooks default to `nil`, so the default file-backed behavior is unchanged.
+The writer runs in the forked child process, so build connections lazily after
+fork. If a writer raises, the error is logged and the task keeps running. Task
+output can contain secrets or personal data; only enable a writer when the
+destination and its retention meet your policy.
+
 ## Testing
 
 `bundle exec rake test`
