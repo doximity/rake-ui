@@ -13,3 +13,4 @@
 /test/dummy/tmp/local_secret.txt
 
 .byebug_history
+/vendor/bundle/

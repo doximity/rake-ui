@@ -95,12 +95,18 @@ module RakeUi
         raker_id: id
       )
 
-      puts "[rake_ui] [rake_task] [forked] #{rake_task_log.rake_command_with_logging}"
+      log_writer = RakeUi.log_writer
+      command = log_writer ? rake_task_log.rake_command : rake_task_log.rake_command_with_logging
+      puts "[rake_ui] [rake_task] [forked] #{command}"
 
       fork do
-        system(rake_task_log.rake_command_with_logging)
+        if log_writer
+          rake_task_log.run_with_log_writer(log_writer)
+        else
+          system(rake_task_log.rake_command_with_logging)
 
-        system(rake_task_log.command_to_mark_log_finished)
+          system(rake_task_log.command_to_mark_log_finished)
+        end
       end
 
       rake_task_log
