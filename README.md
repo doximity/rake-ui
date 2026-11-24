@@ -72,9 +72,6 @@ RakeUi.configuration do |config|
 
   # Return the ids of logs stored outside this pod, for the index page.
   config.log_list = -> { ["<log id>", ...] }
-
-  # Write logs to a different local directory.
-  config.log_directory = "/path/to/logs"
 end
 ```
 

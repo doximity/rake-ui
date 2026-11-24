@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "tmpdir"
 require "shellwords"
 
 class RakeTaskLogTest < ActiveSupport::TestCase
@@ -64,54 +63,6 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     [first_log, second_log].compact.each do |log|
       File.delete(log.log_file_full_path) if File.exist?(log.log_file_full_path)
     end
-  end
-
-  test "repository_dir defaults to the tmp/rake_ui directory" do
-    assert_nil RakeUi.log_directory
-    assert_equal RakeUi::RakeTaskLog::REPOSITORY_DIR, RakeUi::RakeTaskLog.repository_dir
-    assert_equal Rails.root.join("tmp", "rake_ui").to_s, RakeUi::RakeTaskLog.repository_dir.to_s
-
-    name = "2021-02-07-09-34-04-0600____missing.txt"
-    log = RakeUi::RakeTaskLog.build_from_file(name)
-
-    assert_equal Rails.root.join("tmp", "rake_ui", name).to_s, log.log_file_full_path
-  end
-
-  test "repository_dir treats blank values as unset and accepts a Pathname" do
-    default_dir = RakeUi::RakeTaskLog::REPOSITORY_DIR
-
-    [nil, "", "   ", false].each do |blank|
-      RakeUi.log_directory = blank
-      assert_equal default_dir, RakeUi::RakeTaskLog.repository_dir
-    end
-
-    RakeUi.log_directory = Pathname.new("/tmp/rake_ui_configured")
-    assert_equal Pathname.new("/tmp/rake_ui_configured"), RakeUi::RakeTaskLog.repository_dir
-  ensure
-    RakeUi.log_directory = nil
-  end
-
-  test "repository_dir uses the configured log_directory and leaves the default directory alone" do
-    default_dir = RakeUi::RakeTaskLog::REPOSITORY_DIR
-    default_entries_before = Dir.children(default_dir).sort
-
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
-    log = RakeUi::RakeTaskLog.build_new_for_command(
-      name: "test_task",
-      rake_definition_file: "test.rake",
-      rake_command: "rake test_task",
-      raker_id: "test"
-    )
-
-    assert_equal Pathname.new(tmpdir), RakeUi::RakeTaskLog.repository_dir
-    assert File.exist?(log.log_file_full_path)
-    assert_equal tmpdir, File.dirname(log.log_file_full_path)
-    assert_equal default_entries_before, Dir.children(default_dir).sort
-  ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
   end
 
   test "all merges log_list ids without duplicating a locally known log" do
@@ -271,9 +222,6 @@ class RakeTaskLogTest < ActiveSupport::TestCase
   end
 
   test "run_with_log_writer streams output to the file and the writer" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -294,14 +242,10 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_equal 1, events.count { |event, _payload| [:finished, :error].include?(event) }
     assert(events.any? { |event, payload| event == :progress && payload.include?("hello-from-writer") })
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "run_with_log_writer does not raise or stop the file write when the writer fails" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -314,14 +258,10 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_nothing_raised { log.run_with_log_writer(writer) }
     assert_includes File.read(log.log_file_full_path), "still-writes-the-file"
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "run_with_log_writer reports :error for a failed command" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -339,14 +279,10 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_includes File.read(log.log_file_full_path), RakeUi::RakeTaskLog::FINISHED_STRING
     assert log.finished?
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "run_with_log_writer puts the finish marker on its own line" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -360,14 +296,10 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_includes contents, "no-newline\n#{RakeUi::RakeTaskLog::FINISHED_STRING}"
     refute_includes contents, "no-newline#{RakeUi::RakeTaskLog::FINISHED_STRING}"
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "run_with_log_writer handles empty output" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -381,14 +313,10 @@ class RakeTaskLogTest < ActiveSupport::TestCase
     assert_equal [:start, :finished], events
     assert log.finished?
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "finished? tolerates invalid UTF-8 output" do
-    tmpdir = Dir.mktmpdir("rake_ui_logs")
-    RakeUi.log_directory = tmpdir
-
     log = RakeUi::RakeTaskLog.build_new_for_command(
       name: "test_task",
       rake_definition_file: "test.rake",
@@ -400,8 +328,7 @@ class RakeTaskLogTest < ActiveSupport::TestCase
 
     assert_nothing_raised { assert log.finished? }
   ensure
-    RakeUi.log_directory = nil
-    FileUtils.remove_entry(tmpdir) if tmpdir && File.exist?(tmpdir)
+    File.delete(log.log_file_full_path) if log && File.exist?(log.log_file_full_path)
   end
 
   test "log_source raises MissingLogFile when log_reader returns a non-hash" do

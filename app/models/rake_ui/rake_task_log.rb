@@ -18,22 +18,12 @@ module RakeUi
     TASK_HEADER_OUTPUT_DELIMITER = "-------------------------------"
     FILE_ITEM_SEPARATOR = ": "
 
-    def self.repository_dir
-      if RakeUi.log_directory.present?
-        Pathname.new(RakeUi.log_directory.to_s)
-      else
-        REPOSITORY_DIR
-      end
-    end
-
     def self.create_tmp_file_dir
-      FileUtils.mkdir_p(repository_dir.to_s)
+      FileUtils.mkdir_p(REPOSITORY_DIR.to_s)
     end
 
     def self.truncate
-      return if repository_dir.root?
-
-      FileUtils.rm_rf(repository_dir.children)
+      FileUtils.rm_rf(Dir.glob(REPOSITORY_DIR.to_s + "/*"))
     end
 
     def self.build_from_file(log_file_name)
@@ -42,7 +32,7 @@ module RakeUi
       new(
         id: log_file_name.gsub(".txt", ""),
         log_file_name: log_file_name,
-        log_file_full_path: repository_dir.join(log_file_name).to_s
+        log_file_full_path: REPOSITORY_DIR.join(log_file_name).to_s
       )
     end
 
@@ -52,7 +42,7 @@ module RakeUi
       date = Time.now.strftime(ID_DATE_FORMAT)
       id = "#{date}#{FILE_DELIMITER}#{raker_id}"
       log_file_name = "#{id}.txt"
-      log_file_full_path = repository_dir.join(log_file_name).to_s
+      log_file_full_path = REPOSITORY_DIR.join(log_file_name).to_s
 
       File.open(log_file_full_path, "w+") do |f|
         f.puts "id#{FILE_ITEM_SEPARATOR}#{id}"
@@ -83,7 +73,7 @@ module RakeUi
     def self.all
       create_tmp_file_dir
 
-      local = Dir.entries(repository_dir).reject { |file|
+      local = Dir.entries(REPOSITORY_DIR).reject { |file|
         file == "." || file == ".."
       }.map do |log|
         RakeUi::RakeTaskLog.build_from_file(log)
@@ -109,7 +99,7 @@ module RakeUi
       if RakeUi.log_reader
         log_file_name = "#{id.to_s.delete_suffix(".txt")}.txt"
         local_path = begin
-          path = repository_dir.join(log_file_name)
+          path = REPOSITORY_DIR.join(log_file_name)
           build_from_file(log_file_name) if path.basename.to_s == log_file_name && path.exist?
         rescue ArgumentError, SystemCallError
           nil

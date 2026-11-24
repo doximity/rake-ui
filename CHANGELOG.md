@@ -9,7 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   [#59](https://github.com/doximity/rake-ui/pull/59)
 * Rails 8.1 and Ruby 4.0 compatibility
   [#60](https://github.com/doximity/rake-ui/pull/60)
-* Make the rake task log directory configurable (default `tmp/rake_ui` unchanged)
 * Add optional log source hooks for reading and listing logs outside the local filesystem
 * Add an optional `RakeUi.log_writer` hook to stream task logs to shared storage
 * Document the log storage hooks in the README
